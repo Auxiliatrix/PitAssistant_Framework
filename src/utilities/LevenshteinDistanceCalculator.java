@@ -67,7 +67,7 @@ public class LevenshteinDistanceCalculator {
 	
 	private boolean levenshteinContains(String string, Collection<String> collection) {
 		for( String s : collection ) {
-			if( characterCompare(string, s) < Calibration.LEVENSHTEIN_TOLERANCE) {
+			if( characterCompare(string, s) < Calibration.LEVENSHTEIN_WORD_TOLERANCE) {
 				return true;
 			}
 		}

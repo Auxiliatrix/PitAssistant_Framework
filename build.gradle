@@ -1,0 +1,41 @@
+apply plugin:'java'
+apply plugin:'application'
+apply plugin:'eclipse'
+
+mainClassName = "processors.Brain"
+
+run {
+        if (project.hasProperty("runArgs")) {
+        args Eval.me(runArgs)
+    }
+}
+
+repositories {
+        jcenter()
+        mavenCentral()
+        maven {
+                url  "https://jitpack.io"
+        }
+}
+
+dependencies {
+	compile "org.xerial:sqlite-jdbc:3.21.0.1"
+}
+
+sourceSets {
+   main {
+      java {
+         srcDirs = [ 'src' ]
+      }
+   }
+}
+
+jar {
+        // Needs to be after dependencies
+        manifest {
+                attributes 'Main-Class': 'main.Brain'
+                attributes (
+                        "Class-Path": configurations.compile.collect { it.getName() }.join(' ')
+                )
+        }
+}

@@ -489,6 +489,13 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( inventory );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE container SET inventory = " + getInventoryID(inventory) + " WHERE id = " + getContainerID(container) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -499,12 +506,29 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( container );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + " WHERE id = " + getItemID(item) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		
 		return true;
 	}
 
 	public boolean setItemOwner( String item, String team ) throws EntryNotExistException {
-		if( !itemExists( item ) || !teamExists( team ) ) {
-			throw new EntryNotExistException();
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		} else if( !teamExists( team ) ) {
+			throw new EntryNotExistException( team );
+		}
+		
+		try {
+			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + " WHERE id = " + getItemID(item) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
 		
 		return true;
@@ -517,6 +541,13 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( team );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE container SET team = " + getTeamID(team) + " WHERE id = " + getContainerID(container) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -527,12 +558,26 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( team );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + " WHERE id = " + getInventoryID(inventory) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
 		return true;
 	}
 
 	public boolean setItemName( String oldName, String newName ) throws EntryNotExistException {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
+		}
+		
+		try {
+			statement.executeUpdate("UPDATE item SET name = '" + newName + "' WHERE id = " + getItemID(oldName) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
 		
 		return true;
@@ -543,6 +588,12 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( oldName );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE container SET name = '" + newName + "' WHERE id = " + getContainerID(oldName) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 		
 		return true;
 	}
@@ -550,6 +601,13 @@ public class InventoryDatabase {
 	public boolean setInventoryName( String oldName, String newName ) throws EntryNotExistException {
 		if( !inventoryExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
+		}
+		
+		try {
+			statement.executeUpdate("UPDATE inventory SET name = '" + newName + "' WHERE id = " + getInventoryID(oldName) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
 		
 		return true;
@@ -560,6 +618,13 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( item );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + " WHERE id = " + getItemID(item) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -568,6 +633,12 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( container );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE container SET inventory = " + defaultInventory + " WHERE id = " + getContainerID(container) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 		
 		return true;
 	}
@@ -575,6 +646,13 @@ public class InventoryDatabase {
 	public boolean setItemTeamToDefault( String item ) throws EntryNotExistException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
+		}
+		
+		try {
+			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + " WHERE id = " + getItemID(item) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
 		
 		return true;
@@ -585,6 +663,12 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( container );
 		}
 		
+		try {
+			statement.executeUpdate("UPDATE container SET team = " + defaultTeam + " WHERE id = " + getContainerID(container) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
 		
 		return true;
 	}
@@ -592,6 +676,13 @@ public class InventoryDatabase {
 	public boolean setInventoryTeamToDefault( String inventory ) throws EntryNotExistException {
 		if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
+		}
+		
+		try {
+			statement.executeUpdate("UPDATE inventory SET team = " + defaultTeam + " WHERE id = " + getInventoryID(inventory) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
 		}
 		
 		return true;

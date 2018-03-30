@@ -490,7 +490,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE container SET inventory = " + getInventoryID(inventory) + " WHERE id = " + getContainerID(container) + ";");
+			statement.executeUpdate("UPDATE container SET inventory = " + getInventoryID(inventory) + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -507,7 +507,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -525,7 +525,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -542,7 +542,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE container SET team = " + getTeamID(team) + " WHERE id = " + getContainerID(container) + ";");
+			statement.executeUpdate("UPDATE container SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -559,7 +559,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + " WHERE id = " + getInventoryID(inventory) + ";");
+			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -574,7 +574,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET name = '" + newName + "' WHERE id = " + getItemID(oldName) + ";");
+			statement.executeUpdate("UPDATE item SET name = '" + newName + "', time = " + getTime() + " WHERE id = " + getItemID(oldName) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -604,7 +604,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE inventory SET name = '" + newName + "' WHERE id = " + getInventoryID(oldName) + ";");
+			statement.executeUpdate("UPDATE inventory SET name = '" + newName + "', time = " + getTime() + " WHERE id = " + getInventoryID(oldName) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -619,7 +619,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -634,7 +634,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE container SET inventory = " + defaultInventory + " WHERE id = " + getContainerID(container) + ";");
+			statement.executeUpdate("UPDATE container SET inventory = " + defaultInventory + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -649,7 +649,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -664,7 +664,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE container SET team = " + defaultTeam + " WHERE id = " + getContainerID(container) + ";");
+			statement.executeUpdate("UPDATE container SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -679,7 +679,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE inventory SET team = " + defaultTeam + " WHERE id = " + getInventoryID(inventory) + ";");
+			statement.executeUpdate("UPDATE inventory SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;

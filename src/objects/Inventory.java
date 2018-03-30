@@ -12,7 +12,7 @@ import utilities.LevenshteinDistanceCalculator;
 
 public class Inventory {
 	
-	private ArrayList<Container> containers;
+	public ArrayList<Container> containers;
 	private String originalTeam;
 	
 	public Inventory(String team) {

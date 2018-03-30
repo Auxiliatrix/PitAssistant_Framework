@@ -18,7 +18,6 @@ import constants.Calibration;
 public class InventoryDatabase {
 	private static SimpleDateFormat sdf = new SimpleDateFormat( Calibration.DATEFORMAT );
 
-	private String name;
 	private Connection connection = null;
 	private Statement statement = null;
 	private long defaultTeam;
@@ -34,7 +33,7 @@ public class InventoryDatabase {
 	 *   Container
 	 *   Team // Who owns the thing
 	 *   Location
-	 * Container
+	 * Container <-- Seprate from container, if outside of box. Need to implement still
 	 *   Time added / modified
 	 *   Name
 	 *   ID
@@ -165,31 +164,31 @@ public class InventoryDatabase {
 
 		try {
 			rs =  statement.executeQuery("SELECT name FROM inventory;");
-			
+
 			while( rs.next() ) {
 				result.add( rs.getString("name") );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result.toArray( new String[ result.size() ] );
 	}
-	
+
 	public String[] getAllContainters() {
 		List<String> result = new ArrayList<String>();
 		ResultSet rs;
 
 		try {
 			rs =  statement.executeQuery("SELECT name FROM container;");
-			
+
 			while( rs.next() ) {
 				result.add( rs.getString("name") );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result.toArray( new String[ result.size() ] );
 	}
 
@@ -199,14 +198,14 @@ public class InventoryDatabase {
 
 		try {
 			rs =  statement.executeQuery("SELECT name FROM item;");
-			
+
 			while( rs.next() ) {
 				result.add( rs.getString("name") );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result.toArray( new String[ result.size() ] );
 	}
 
@@ -216,14 +215,14 @@ public class InventoryDatabase {
 
 		try {
 			rs =  statement.executeQuery("SELECT name FROM container WHERE inventory = " + getInventoryID( inventory ) + ";");
-			
+
 			while( rs.next() ) {
 				result.add( rs.getString("name") );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result.toArray( new String[ result.size() ] );
 	}
 
@@ -233,14 +232,14 @@ public class InventoryDatabase {
 
 		try {
 			rs =  statement.executeQuery("SELECT name FROM item WHERE container = " + getContainerID( container ) + ";");
-			
+
 			while( rs.next() ) {
 				result.add( rs.getString("name") );
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result.toArray( new String[ result.size() ] );
 	}
 
@@ -260,7 +259,7 @@ public class InventoryDatabase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
 
@@ -279,7 +278,7 @@ public class InventoryDatabase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
 
@@ -298,15 +297,15 @@ public class InventoryDatabase {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
-	
+
 	/* Get who owns the object */
 	public String getInventoryOwner( String inventory ) {
 		String owner = "";
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT team FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
 			rs.next();
@@ -314,14 +313,14 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return owner;
 	}
-	
+
 	public String getContainerOwner( String container ) {
 		String owner = "";
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT team FROM container WHERE id = " + getContainerID( container ) + ";");
 			rs.next();
@@ -329,14 +328,14 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return owner;
 	}
-	
+
 	public String getItemOwner( String item ) {
 		String owner = "";
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT team FROM item WHERE id = " + getItemID( item ) + ";");
 			rs.next();
@@ -344,15 +343,15 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return owner;
 	}
-	
+
 	/* Get where the object is */
 	public String getContainerLocation( String container ) {
 		String location = "";
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT inventory FROM container WHERE id = " + getContainerID( container ) + ";");
 			rs.next();
@@ -360,14 +359,14 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return location;
 	}
-	
+
 	public String getItemLocation( String item ) {
 		String location = "";
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getItemID( item ) + ";");
 			rs.next();
@@ -375,15 +374,15 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return location;
 	}
-	
+
 	/* Get last edit time */
 	public long getInventoryTime( String inventory ) {
 		long location = -1;
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT time FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
 			rs.next();
@@ -391,14 +390,14 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return location;
 	}
 
 	public long getContainerTime( String container ) {
 		long location = -1;
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT time FROM container WHERE id = " + getContainerID( container ) + ";");
 			rs.next();
@@ -406,14 +405,14 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return location;
 	}
-	
+
 	public long getItemTime( String item ) {
 		long location = -1;
 		ResultSet rs;
-		
+
 		try {
 			rs = statement.executeQuery("SELECT time FROM item WHERE id = " + getItemID( item ) + ";");
 			rs.next();
@@ -421,26 +420,104 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return location;
 	}
-	
+
 	/* SET DATABASE VALUES */
-	
+
+	public void setContainerInventory( String container, String inventory ) {
+
+	}
+
+	public void setItemContainer( String item, String container ) {
+
+	}
+
+	public void setItemOwner( String item, String team ) {
+
+	}
+
+	public void setContainerOwner( String container, String team ) {
+
+	}
+
+	public void setInventoryOwner( String inventory, String team ) {
+
+	}
+
+	public void setItemName( String oldName, String newName ) {
+
+	}
+
+	public void setContainerName( String oldName, String newName ) {
+
+	}
+
+	public void setInventoryName( String oldName, String newName ) {
+
+	}
+
+	public void setItemLocToDefault( String item ) {
+
+	}
+
+	public void setContainerLocToDefault( String container ) {
+
+	}
+
+	public void setItemTeamToDefault( String item ) {
+
+	}
+
+	public void setContainerTeamToDefault( String container ) {
+
+	}
+
+	public void setInventoryTeamToDefault( String inventory ) {
+
+	}
+
+	public void setTeamName( long id, String name ) {
+
+	}
+
+	/* CREATE OBJECTS */
+
+	public void newInventory( String name, String team ) {
+
+	}
+
+	public void newContainer( String name, String inventory, String team ) {
+
+	}
+
+	public void newItem( String name, String container, String team ) {
+
+	}
+
+	public void newItem( String name, String container, String location, String team ) {
+
+	}
+
+	public void newTeam( String name, long id ) {
+
+	}
+
 	/* PRIVATE HELPER FUNCTIONS */
 
 	private long getTime() {
 		return Clock.systemUTC().millis(); // Should use SQLite date and time functions
 	}
-	
+
 	private long getInventoryID( String inventory ) { // Should these be public?
 		return 0;
 	}
-	
+
 	private long getContainerID( String container ) {
 		return 0;
 	}
-	
+
 	private long getItemID( String item ) {
 		return 0;
 	}

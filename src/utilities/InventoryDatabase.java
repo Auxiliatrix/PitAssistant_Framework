@@ -381,16 +381,51 @@ public class InventoryDatabase {
 	
 	/* Get last edit time */
 	public long getInventoryTime( String inventory ) {
-		return 0;
+		long location = -1;
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT time FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			rs.next();
+			location = rs.getLong("time");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return location;
 	}
 
 	public long getContainerTime( String container ) {
-		return 0;
+		long location = -1;
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT time FROM container WHERE id = " + getContainerID( container ) + ";");
+			rs.next();
+			location = rs.getLong("time");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return location;
 	}
 	
 	public long getItemTime( String item ) {
-		return 0;
+		long location = -1;
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT time FROM item WHERE id = " + getItemID( item ) + ";");
+			rs.next();
+			location = rs.getLong("time");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return location;
 	}
+	
+	/* SET DATABASE VALUES */
 	
 	/* PRIVATE HELPER FUNCTIONS */
 
@@ -398,7 +433,7 @@ public class InventoryDatabase {
 		return Clock.systemUTC().millis(); // Should use SQLite date and time functions
 	}
 	
-	private long getInventoryID( String inventory ) {
+	private long getInventoryID( String inventory ) { // Should these be public?
 		return 0;
 	}
 	

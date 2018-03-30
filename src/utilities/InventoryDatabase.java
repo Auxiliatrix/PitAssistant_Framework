@@ -14,9 +14,38 @@ import constants.Calibration;
 public class InventoryDatabase {
 	private static SimpleDateFormat sdf = new SimpleDateFormat( Calibration.DATEFORMAT );
 
-	String name;
-	Connection connection = null;
-	Statement statement = null;
+	private String name;
+	private Connection connection = null;
+	private Statement statement = null;
+	private long defaultTeam;
+	private long defaultInventory;
+	private long defaultContainer;
+	
+	/*
+	 * TABLES:
+	 * Item
+	 *   Time added / modified
+	 *   Name
+	 *   ID
+	 *   Container
+	 *   Team // Who owns the thing
+	 *   Location
+	 * Container
+	 *   Time added / modified
+	 *   Name
+	 *   ID
+	 *   Inventory
+	 *   Team // Who owns the thing
+	 * Inventory
+	 *   Time added / modified
+	 *   Name
+	 *   ID
+	 *   Team // Who owns the thing
+	 * Team
+	 *   ID
+	 *   Name
+	 *   Time added / modified
+	 */
 
 	public InventoryDatabase() {
 		this( sdf.format( Calendar.getInstance().getTime() ) );
@@ -83,54 +112,35 @@ public class InventoryDatabase {
 	
 	public boolean init() {
 		// Adds required tables and columns to the database
-		/*
-		 * TABLES:
-		 * Item
-		 *   Time added / modified
-		 *   Name
-		 *   ID
-		 *   Container
-		 *   Owner
-		 *   Location
-		 * Container
-		 *   Time added / modified
-		 *   Name
-		 *   ID
-		 *   Inventory
-		 * Inventory
-		 *   Time added / modified
-		 *   Name
-		 *   ID
-		 * Group
-		 *   ID
-		 *   Name
-		 *   Time added / modified
-		 */
 		try {
+			// Require that key relations are good
 			statement.executeUpdate( "PRAGMA foreign_keys = ON ;" );
 			
 			/* Create nessessary tables */
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS team ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
-					+ "time integer NOT NULL );" );
+					+ "team integer NOT NULL, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS inventory ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
-					+ "time integer NOT NULL );" );
+					+ "team integer NOT NULL, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
-					+ "inventory integer NOT NULL, time integer NOT NULL);" );
+					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL);" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
 					+ "container integer NOT NULL, owner integer NOT NULL, location text, time integer NOT NULL, "
 					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id) );" );
 			
 			/* Add default values to tables */
 			statement.executeUpdate("INSERT INTO team ( name, time ) VALUES ('default', " + getTime() + ");"); // Create default team
-			statement.executeUpdate("INSERT INTO inventory ( name, time ) VALUES ('default', " + getTime() + ");"); // Create default inventory
-			ResultSet result = statement.executeQuery("SELECT id FROM inventory WHERE name = 'default';"); // Get the id of the default inventory
-			statement.executeUpdate("INSERT INTO container ( name, inventory, time ) VALUES ('default', " + result.getInt("id") + ", " + getTime() + ");"); // Create default container
+			defaultTeam = statement.executeQuery("SELECT id FROM team WHERE name = 'default';").getLong("id"); // ID of default team
+
+			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES ('default', " + defaultTeam + ", " + getTime() + ");"); // Create default inventory
+			defaultInventory = statement.executeQuery("SELECT id FROM inventory WHERE name = 'default';").getLong("id"); // Get the id of the default inventory
+			
+			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES ('default', " + defaultInventory + ", " + defaultTeam + ", " + getTime() + ");"); // Create default container
+			defaultContainer = statement.executeQuery("SELECT id FROM container WHERE name = 'default';").getLong("id"); // Get the id of the default container
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
 		
 		return true;
 	}

@@ -2,11 +2,15 @@ package utilities;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import constants.Calibration;
@@ -128,14 +132,21 @@ public class InventoryDatabase {
 					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id) );" );
 
 			/* Add default values to tables */
+			ResultSet rs;
 			statement.executeUpdate("INSERT INTO team ( name, time ) VALUES ('default', " + getTime() + ");"); // Create default team
-			defaultTeam = statement.executeQuery("SELECT id FROM team WHERE name = 'default';").getLong("id"); // ID of default team
+			rs = statement.executeQuery("SELECT id FROM team WHERE name = 'default';");
+			rs.next();
+			defaultTeam = rs.getLong("id"); // ID of default team
 
 			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES ('default', " + defaultTeam + ", " + getTime() + ");"); // Create default inventory
-			defaultInventory = statement.executeQuery("SELECT id FROM inventory WHERE name = 'default';").getLong("id"); // Get the id of the default inventory
+			rs = statement.executeQuery("SELECT id FROM inventory WHERE name = 'default';"); // Get the id of the default inventory
+			rs.next();
+			defaultInventory = rs.getLong("id");
 
 			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES ('default', " + defaultInventory + ", " + defaultTeam + ", " + getTime() + ");"); // Create default container
-			defaultContainer = statement.executeQuery("SELECT id FROM container WHERE name = 'default';").getLong("id"); // Get the id of the default container
+			rs = statement.executeQuery("SELECT id FROM container WHERE name = 'default';"); // Get the id of the default container
+			rs.next();
+			defaultContainer = rs.getLong("id");
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -148,51 +159,224 @@ public class InventoryDatabase {
 	/* QUERY DATABASE */
 
 	/* Get all subvalues of database */
-	public String getInventories() {
-		return "";
+	public String[] getAllInventories() {
+		List<String> result = new ArrayList<String>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT name FROM inventory;");
+			
+			while( rs.next() ) {
+				result.add( rs.getString("name") );
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result.toArray( new String[ result.size() ] );
+	}
+	
+	public String[] getAllContainters() {
+		List<String> result = new ArrayList<String>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT name FROM container;");
+			
+			while( rs.next() ) {
+				result.add( rs.getString("name") );
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result.toArray( new String[ result.size() ] );
 	}
 
-	public String getContainters( String inventory ) {
-		return "";
+	public String[] getAllItems() {
+		List<String> result = new ArrayList<String>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT name FROM item;");
+			
+			while( rs.next() ) {
+				result.add( rs.getString("name") );
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result.toArray( new String[ result.size() ] );
 	}
 
-	public String getItems( String container ) {
-		return "";
+	public String[] getContainters( String inventory ) {
+		List<String> result = new ArrayList<String>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT name FROM container WHERE inventory = " + getInventoryID( inventory ) + ";");
+			
+			while( rs.next() ) {
+				result.add( rs.getString("name") );
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result.toArray( new String[ result.size() ] );
+	}
+
+	public String[] getItems( String container ) {
+		List<String> result = new ArrayList<String>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT name FROM item WHERE container = " + getContainerID( container ) + ";");
+			
+			while( rs.next() ) {
+				result.add( rs.getString("name") );
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result.toArray( new String[ result.size() ] );
 	}
 
 	/* Get all info about the thing */
-	public Map<String, Object> getInventory( String inventory ){
-		return null;
+	public Map<String, Object> getInventory( String inventory ) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT * FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			int colCount = rs.getMetaData().getColumnCount();
+			while( rs.next() ) {
+				for( int i = 0; i <= colCount; i++ ) {
+					result.put( rs.getMetaData().getColumnName( i ), rs.getObject( i ) );
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 
 	public Map<String, Object> getContainer( String container ){
-		return null;
+		Map<String, Object> result = new HashMap<String, Object>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT * FROM container WHERE id = " + getContainerID( container ) + ";");
+			int colCount = rs.getMetaData().getColumnCount();
+			while( rs.next() ) {
+				for( int i = 0; i <= colCount; i++ ) {
+					result.put( rs.getMetaData().getColumnName( i ), rs.getObject( i ) );
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 
 	public Map<String, Object> getItem( String item ){
-		return null;
+		Map<String, Object> result = new HashMap<String, Object>();
+		ResultSet rs;
+
+		try {
+			rs =  statement.executeQuery("SELECT * FROM item WHERE id = " + getItemID( item ) + ";");
+			int colCount = rs.getMetaData().getColumnCount();
+			while( rs.next() ) {
+				for( int i = 0; i <= colCount; i++ ) {
+					result.put( rs.getMetaData().getColumnName( i ), rs.getObject( i ) );
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 	
 	/* Get who owns the object */
 	public String getInventoryOwner( String inventory ) {
-		return "";
+		String owner = "";
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT team FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			rs.next();
+			owner = rs.getString("team");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return owner;
 	}
 	
 	public String getContainerOwner( String container ) {
-		return "";
+		String owner = "";
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT team FROM container WHERE id = " + getContainerID( container ) + ";");
+			rs.next();
+			owner = rs.getString("team");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return owner;
 	}
 	
 	public String getItemOwner( String item ) {
-		return "";
+		String owner = "";
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT team FROM item WHERE id = " + getItemID( item ) + ";");
+			rs.next();
+			owner = rs.getString("team");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return owner;
 	}
 	
 	/* Get where the object is */
 	public String getContainerLocation( String container ) {
-		return "";
+		String location = "";
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT inventory FROM container WHERE id = " + getContainerID( container ) + ";");
+			rs.next();
+			location = rs.getString("inventory");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return location;
 	}
 	
 	public String getItemLocation( String item ) {
-		return "";
+		String location = "";
+		ResultSet rs;
+		
+		try {
+			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getItemID( item ) + ";");
+			rs.next();
+			location = rs.getString("inventory");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return location;
 	}
 	
 	/* Get last edit time */
@@ -212,5 +396,17 @@ public class InventoryDatabase {
 
 	private long getTime() {
 		return Clock.systemUTC().millis(); // Should use SQLite date and time functions
+	}
+	
+	private long getInventoryID( String inventory ) {
+		return 0;
+	}
+	
+	private long getContainerID( String container ) {
+		return 0;
+	}
+	
+	private long getItemID( String item ) {
+		return 0;
 	}
 }

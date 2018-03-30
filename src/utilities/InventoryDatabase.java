@@ -33,7 +33,7 @@ public class InventoryDatabase {
 	 *   Container
 	 *   Team // Who owns the thing
 	 *   Location
-	 * Container <-- Seprate from container, if outside of box. Need to implement still
+	 * Container
 	 *   Time added / modified
 	 *   Name
 	 *   ID
@@ -183,6 +183,28 @@ public class InventoryDatabase {
 	public boolean inventoryExists( String inventory ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean teamExists( String team ) {
+		try {
+			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + getTeamID( team ) + ";");
+			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean teamExists( long team ) {
+		try {
+			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + team + ";");
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -460,60 +482,119 @@ public class InventoryDatabase {
 
 	/* SET DATABASE VALUES */
 
-	public boolean setContainerInventory( String container, String inventory ) {
-
+	public boolean setContainerInventory( String container, String inventory ) throws EntryNotExistException {
+		if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		} else if( !inventoryExists( inventory ) ) {
+			throw new EntryNotExistException( inventory );
+		}
+		
+		return true;
 	}
 
-	public boolean setItemContainer( String item, String container ) {
-
+	public boolean setItemContainer( String item, String container ) throws EntryNotExistException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		} else if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		}
+		
+		return true;
 	}
 
-	public boolean setItemOwner( String item, String team ) {
-
+	public boolean setItemOwner( String item, String team ) throws EntryNotExistException {
+		if( !itemExists( item ) || !teamExists( team ) ) {
+			throw new EntryNotExistException();
+		}
+		
+		return true;
 	}
 
-	public boolean setContainerOwner( String container, String team ) {
-
+	public boolean setContainerOwner( String container, String team ) throws EntryNotExistException {
+		if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		} else if( !teamExists( team ) ) {
+			throw new EntryNotExistException( team );
+		}
+		
+		return true;
 	}
 
-	public boolean setInventoryOwner( String inventory, String team ) {
-
+	public boolean setInventoryOwner( String inventory, String team ) throws EntryNotExistException {
+		if( !inventoryExists( inventory ) ) {
+			throw new EntryNotExistException( inventory );
+		} else if( !teamExists( team ) ) {
+			throw new EntryNotExistException( team );
+		}
+		
+		return true;
 	}
 
-	public boolean setItemName( String oldName, String newName ) {
-
+	public boolean setItemName( String oldName, String newName ) throws EntryNotExistException {
+		if( !itemExists( oldName ) ) {
+			throw new EntryNotExistException( oldName );
+		}
+		
+		return true;
 	}
 
-	public boolean setContainerName( String oldName, String newName ) {
-
+	public boolean setContainerName( String oldName, String newName ) throws EntryNotExistException {
+		if( !containerExists( oldName ) ) {
+			throw new EntryNotExistException( oldName );
+		}
+		
+		
+		return true;
 	}
 
-	public boolean setInventoryName( String oldName, String newName ) {
-
+	public boolean setInventoryName( String oldName, String newName ) throws EntryNotExistException {
+		if( !inventoryExists( oldName ) ) {
+			throw new EntryNotExistException( oldName );
+		}
+		
+		return true;
 	}
 
-	public boolean setItemLocToDefault( String item ) {
-
+	public boolean setItemLocToDefault( String item ) throws EntryNotExistException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		}
+		
+		return true;
 	}
 
-	public boolean setContainerLocToDefault( String container ) {
-
+	public boolean setContainerLocToDefault( String container ) throws EntryNotExistException {
+		if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		}
+		
+		
+		return true;
 	}
 
-	public boolean setItemTeamToDefault( String item ) {
-
+	public boolean setItemTeamToDefault( String item ) throws EntryNotExistException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		}
+		
+		return true;
 	}
 
-	public boolean setContainerTeamToDefault( String container ) {
-
+	public boolean setContainerTeamToDefault( String container ) throws EntryNotExistException {
+		if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		}
+		
+		
+		return true;
 	}
 
-	public boolean setInventoryTeamToDefault( String inventory ) {
-
-	}
-
-	public void setTeamName( long id, String name ) {
-
+	public boolean setInventoryTeamToDefault( String inventory ) throws EntryNotExistException {
+		if( !inventoryExists( inventory ) ) {
+			throw new EntryNotExistException( inventory );
+		}
+		
+		return true;
 	}
 
 	/* CREATE OBJECTS */
@@ -569,6 +650,10 @@ public class InventoryDatabase {
 	}
 
 	private long getItemID( String item ) {
+		return 0;
+	}
+	
+	private long getTeamID( String team ) {
 		return 0;
 	}
 }

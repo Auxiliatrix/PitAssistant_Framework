@@ -55,9 +55,6 @@ public class InventoryDatabase {
 	}
 
 	public InventoryDatabase( String name ) {
-
-		this.name = name;
-
 		try {
 			Class.forName("org.sqlite.JDBC"); // Do i need this?
 			connection = DriverManager.getConnection( name );
@@ -173,7 +170,7 @@ public class InventoryDatabase {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM container WHERE id = " + getContainerID( container ) + ";");			
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
-			
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -190,7 +187,7 @@ public class InventoryDatabase {
 			return false;
 		}
 	}
-	
+
 	public boolean teamExists( String team ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + getTeamID( team ) + ";");
@@ -201,7 +198,7 @@ public class InventoryDatabase {
 			return false;
 		}
 	}
-	
+
 	public boolean teamExists( long team ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + team + ";");
@@ -488,14 +485,14 @@ public class InventoryDatabase {
 		} else if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE container SET inventory = " + getInventoryID(inventory) + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -505,15 +502,15 @@ public class InventoryDatabase {
 		} else if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
-		
+
+
 		return true;
 	}
 
@@ -523,14 +520,14 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -540,14 +537,14 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE container SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -557,14 +554,14 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -572,14 +569,14 @@ public class InventoryDatabase {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET name = '" + newName + "', time = " + getTime() + " WHERE id = " + getItemID(oldName) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -587,14 +584,14 @@ public class InventoryDatabase {
 		if( !containerExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE container SET name = '" + newName + "' WHERE id = " + getContainerID(oldName) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -602,14 +599,14 @@ public class InventoryDatabase {
 		if( !inventoryExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE inventory SET name = '" + newName + "', time = " + getTime() + " WHERE id = " + getInventoryID(oldName) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -617,14 +614,14 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -632,14 +629,14 @@ public class InventoryDatabase {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE container SET inventory = " + defaultInventory + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -647,14 +644,14 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -662,14 +659,14 @@ public class InventoryDatabase {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE container SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -677,14 +674,14 @@ public class InventoryDatabase {
 		if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE inventory SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -733,18 +730,58 @@ public class InventoryDatabase {
 	}
 
 	private long getInventoryID( String inventory ) { // Should these be public?
-		return 0;
+		long id = -1;
+		
+		try {
+			ResultSet rs = statement.executeQuery("SELECT id FROM inventory WHERE name = '" + inventory + "';");
+			rs.next();
+			id = rs.getLong("id");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+		return id;
 	}
 
 	private long getContainerID( String container ) {
-		return 0;
+		long id = -1;
+
+		try {
+			ResultSet rs = statement.executeQuery("SELECT id FROM container WHERE name = '" + container + "';");
+			rs.next();
+			id = rs.getLong("id");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+		return id;
 	}
 
 	private long getItemID( String item ) {
-		return 0;
+		long id = -1;
+
+		try {
+			ResultSet rs = statement.executeQuery("SELECT id FROM item WHERE name = '" + item + "';");
+			rs.next();
+			id = rs.getLong("id");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+		return id;
 	}
-	
+
 	private long getTeamID( String team ) {
-		return 0;
+		long id = -1;
+
+		try {
+			ResultSet rs = statement.executeQuery("SELECT id FROM team WHERE name = '" + team + "';");
+			rs.next();
+			id = rs.getLong("id");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+		return id;
 	}
 }

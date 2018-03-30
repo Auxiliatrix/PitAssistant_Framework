@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import constants.Calibration;
+import modules.ListModule;
 import modules.Module;
 import objects.Inventory;
 import pairs.ItemPair;
@@ -26,7 +27,11 @@ public class Brain {
 			for( Module m : modules ) {
 				if( input.startsWith(m.getInvoker()) ) {
 					handled = true;
-					response = m.process(input.substring(m.getInvoker().length()+1));
+					if( input.length() == m.getInvoker().length() ) {
+						response = m.process("");
+					} else {
+						response = m.process(input.substring(m.getInvoker().length()+1));
+					}
 				}
 			}
 			if( handled ) {
@@ -53,6 +58,6 @@ public class Brain {
 	}
 	
 	public static void loadModules() {
-		// TODO: Add modules
+		modules.add(new ListModule());
 	}
 }

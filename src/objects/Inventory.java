@@ -61,6 +61,17 @@ public class Inventory {
 		}
 	}
 	
+	public ArrayList<ItemPair> searchExacts(String query) {
+		ArrayList<ItemPair> matches = new ArrayList<ItemPair>();
+		for( Container c : containers ) {
+			for( Item i : c.items ) {
+				if( i.name.equalsIgnoreCase(query) ) {
+					matches.add(new ItemPair(i, 0));
+				}
+			}
+		}
+		return matches;
+	}
 	
 	public ArrayList<ContainerPair> containerSearch (String query) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();

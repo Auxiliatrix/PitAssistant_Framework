@@ -1,4 +1,4 @@
-package modules;
+package modules.invokers;
 
 import java.util.ArrayList;
 
@@ -6,9 +6,9 @@ import objects.Container;
 import pairs.ContainerPair;
 import processors.Brain;
 
-public class ListModule implements Module {
+public class ListInvoker extends Invoker {
 
-	public ListModule() {}
+	public ListInvoker() {}
 	
 	@Override
 	public String getInvoker() {

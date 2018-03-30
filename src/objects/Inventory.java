@@ -62,44 +62,36 @@ public class Inventory {
 	}
 	
 	
-	public ArrayList<ContainerPair> surfaceSearch (String query) {
-		ArrayList<ContainerPair> matches;
-		ArrayList<ContainerPair> exacts;
-		ArrayList<ContainerPair> partials;
-		
-		exacts = getExacts( query );
-		partials = getPartials(query);
-		if( !exacts.isEmpty() ) {
-			matches = exacts;
-		} else if( !partials.isEmpty() ) {
-			matches = partials;
-		} else {
-			matches = new ArrayList<ContainerPair>();
-		}
-		return matches;
-	}
-	
-	private ArrayList<ContainerPair> getExacts(String query) {
-		ArrayList<ContainerPair> exacts = new ArrayList<ContainerPair>();
-		for( Container c : containers ) {
-			if( c.name.equalsIgnoreCase(query) ) {
-				exacts.add(new ContainerPair(c, 0));
-			}
-		}
-		return exacts;
-	}
-	
-	private ArrayList<ContainerPair> getPartials(String query) {
+	public ArrayList<ContainerPair> containerSearch (String query) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();
-		ArrayList<ContainerPair> partials = new ArrayList<ContainerPair>();
-		for( Container c : containers ) {
-			double distance = ldc.optimalComparison(query, c.name);
-			if( distance <= Calibration.LEVENSHTEIN_TOLERANCE ) {
-				partials.add(new ContainerPair(c, distance));
+		ArrayList<ContainerPair> matches = new ArrayList<ContainerPair>();
+		boolean exact = false;
+		ArrayList<ContainerPair> results = new ArrayList<ContainerPair>();
+		for( Container container : containers ) {
+			if( !exact ) {
+				double distance = ldc.optimalComparison(query, container.name);
+				if( distance == 0 ) {
+					exact = true;
+					results.clear();
+				}
+				if( distance < Calibration.LEVENSHTEIN_TOLERANCE ) {
+					results.add(new ContainerPair(container, distance));
+				}
+			} else {
+				if( container.name.equalsIgnoreCase(query) ) {
+					results.add(new ContainerPair(container, 0));
+				}
 			}
 		}
-		ContainerPair[] pairs = partials.toArray(new ContainerPair[partials.size()]);
-		Arrays.sort(pairs, new ContainerPairComparator());
-		return new ArrayList<ContainerPair>(Arrays.asList(pairs));
+		for( ContainerPair result : results ) {
+			matches.add(result);
+		}
+		if( exact ) {
+			return matches;
+		} else {
+			ContainerPair[] pairs = matches.toArray(new ContainerPair[matches.size()]);
+			Arrays.sort(pairs, new ContainerPairComparator());
+			return new ArrayList<ContainerPair>(Arrays.asList(pairs));
+		}
 	}
 }

@@ -485,15 +485,27 @@ public class InventoryDatabase {
 	/* CREATE OBJECTS */
 
 	public void newInventory( String name, String team ) {
-
+		try {
+			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES '" + name + "', '" + team + "', " + getTime() + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void newContainer( String name, String inventory, String team ) {
-
+		try {
+			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES '" + name + "', '" + inventory + "', " + team + "', " + getTime() + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void newItem( String name, String container, String team ) {
-
+		try {
+			statement.executeUpdate("INSERT INTO item ( name, container, team, time ) VALUES '" + name + "', '" + container + "', " + team + "', " + getTime() + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void newItem( String name, String container, String location, String team ) {
@@ -501,7 +513,11 @@ public class InventoryDatabase {
 	}
 
 	public void newTeam( String name, long id ) {
-
+		try {
+			statement.executeUpdate("INSERT INTO team ( id, name ) VALUES " + id + ", '" + name + "';");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/* PRIVATE HELPER FUNCTIONS */

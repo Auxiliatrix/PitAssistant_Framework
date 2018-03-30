@@ -28,7 +28,11 @@ public class Brain {
 			for( Invoker i : invokers ) {
 				if( input.startsWith(i.getInvoker()) ) {
 					handled = true;
-					response = i.process(input.substring(i.getInvoker().length()+1));
+					if( input.length() == i.getInvoker().length() ) {
+						response = i.process("");
+					} else {
+						response = i.process(input.substring(i.getInvoker().length()+1));
+					}
 				}
 			}
 			if( !handled ) {
@@ -44,6 +48,6 @@ public class Brain {
 	}
 	
 	public static void loadInvokers() {
-		// TODO: Add modules
+		// TODO: Add invokers
 	}
 }

@@ -9,7 +9,7 @@ public class Calibration {
 	public static final int DEFAULT_SQL_TIMEOUT = 30;
 	public static final String BACKUP_DATABASE = "jdbc:sqlite:backup.db";
 	public static final int LEVENSHTEIN_TOLERANCE = 3;
-	public static final int LEVENSHTEIN_WORD_TOLERANCE = 1;
+	public static final int LEVENSHTEIN_WORD_TOLERANCE = 2;
 	public static final HashMap<String, String> REPLACEMENTS;
 	static
     {

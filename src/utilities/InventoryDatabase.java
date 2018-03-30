@@ -120,7 +120,7 @@ public class InventoryDatabase {
 			statement.executeUpdate( "PRAGMA foreign_keys = ON ;" );
 
 			/* Create nessessary tables */
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS team ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS team ( id integer NOT NULL, name text NOT NULL, "
 					+ "team integer NOT NULL, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS inventory ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
 					+ "team integer NOT NULL, time integer NOT NULL );" );
@@ -156,6 +156,40 @@ public class InventoryDatabase {
 	}
 
 	/* QUERY DATABASE */
+
+	// Check if entry name exists
+	public boolean itemExists( String item ) {
+		try {
+			ResultSet rs = statement.executeQuery("SELECT count(*) FROM item WHERE id = " + getItemID( item ) + ";");
+			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean containerExists( String container ) {
+		try {
+			ResultSet rs = statement.executeQuery("SELECT count(*) FROM container WHERE id = " + getContainerID( container ) + ";");			
+			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean inventoryExists( String inventory ) {
+		try {
+			ResultSet rs = statement.executeQuery("SELECT count(*) FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
 	/* Get all subvalues of database */
 	public String[] getAllInventories() {
@@ -426,55 +460,55 @@ public class InventoryDatabase {
 
 	/* SET DATABASE VALUES */
 
-	public void setContainerInventory( String container, String inventory ) {
+	public boolean setContainerInventory( String container, String inventory ) {
 
 	}
 
-	public void setItemContainer( String item, String container ) {
+	public boolean setItemContainer( String item, String container ) {
 
 	}
 
-	public void setItemOwner( String item, String team ) {
+	public boolean setItemOwner( String item, String team ) {
 
 	}
 
-	public void setContainerOwner( String container, String team ) {
+	public boolean setContainerOwner( String container, String team ) {
 
 	}
 
-	public void setInventoryOwner( String inventory, String team ) {
+	public boolean setInventoryOwner( String inventory, String team ) {
 
 	}
 
-	public void setItemName( String oldName, String newName ) {
+	public boolean setItemName( String oldName, String newName ) {
 
 	}
 
-	public void setContainerName( String oldName, String newName ) {
+	public boolean setContainerName( String oldName, String newName ) {
 
 	}
 
-	public void setInventoryName( String oldName, String newName ) {
+	public boolean setInventoryName( String oldName, String newName ) {
 
 	}
 
-	public void setItemLocToDefault( String item ) {
+	public boolean setItemLocToDefault( String item ) {
 
 	}
 
-	public void setContainerLocToDefault( String container ) {
+	public boolean setContainerLocToDefault( String container ) {
 
 	}
 
-	public void setItemTeamToDefault( String item ) {
+	public boolean setItemTeamToDefault( String item ) {
 
 	}
 
-	public void setContainerTeamToDefault( String container ) {
+	public boolean setContainerTeamToDefault( String container ) {
 
 	}
 
-	public void setInventoryTeamToDefault( String inventory ) {
+	public boolean setInventoryTeamToDefault( String inventory ) {
 
 	}
 

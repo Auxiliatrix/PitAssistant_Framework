@@ -14,7 +14,7 @@ public class Brain {
 	public static Scanner sc = new Scanner(System.in);
 	public static InventoryLoader loader = new InventoryLoader();
 	
-	public static Inventory inventory = new Inventory(Calibration.TEAM);
+	public static Inventory inventory = new Inventory();
 	public static ArrayList<Invoker> invokers = new ArrayList<Invoker>();
 	
 	public static SearchModule searcher = new SearchModule();

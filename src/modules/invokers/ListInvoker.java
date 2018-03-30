@@ -2,7 +2,6 @@ package modules.invokers;
 
 import java.util.ArrayList;
 
-import constants.Calibration;
 import objects.Container;
 import objects.Item;
 import pairs.ContainerPair;
@@ -32,7 +31,7 @@ public class ListInvoker extends Invoker {
 			} else {
 				ContainerPair first = containers.get(0);
 				if( first.value == 0 ) {
-					response += "Here's what" + (first.container.originalTeam.equals(Calibration.TEAM) ? "'s in " : " we borrowed from ") + first.container.name + "\n";
+					response += "Here's what" + (first.container.originalTeam ? "'s in " : " we borrowed from ") + first.container.name + "\n";
 					for( Item i : first.container.items ) {
 						response += "* " + i.name + "\n";
 					}

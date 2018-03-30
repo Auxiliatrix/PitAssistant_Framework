@@ -13,15 +13,13 @@ import utilities.LevenshteinDistanceCalculator;
 public class Inventory {
 	
 	public ArrayList<Container> containers;
-	private String originalTeam;
 	
-	public Inventory(String team) {
+	public Inventory() {
 		containers = new ArrayList<Container>();
-		this.originalTeam = team;
 	}
 	
 	public void addOrigin(Container container) {
-		container.originalTeam = this.originalTeam;
+		container.originalTeam = true;
 		containers.add(container);
 	}
 	

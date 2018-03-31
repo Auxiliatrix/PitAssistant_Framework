@@ -12,6 +12,9 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import com.sun.crypto.provider.RSACipher;
 
 import constants.Calibration;
 import sun.awt.image.SunWritableRaster;
@@ -27,9 +30,11 @@ public class InventoryDatabase {
 
 	/*
 	 * TABLES:
+	 * ItemNames:
+	 *   id <-- Same as id of item it represents
+	 *   name <-- the string based name
 	 * Item
 	 *   Time added / modified
-	 *   Name
 	 *   ID
 	 *   Container
 	 *   Team // Who owns the thing
@@ -70,28 +75,28 @@ public class InventoryDatabase {
 	}
 
 	/* Useful utilites */
-	
+
 	public boolean isInitialized() {
 		// Checks to see if the database is correct
 		// Needs work
 		try {
 			ResultSet rs;
-			
+
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='team';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
-			
+
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='item';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
-			
+
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='container';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
-			
+
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='inventory';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
@@ -100,7 +105,7 @@ public class InventoryDatabase {
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
-		
+
 		return true;
 	}
 
@@ -157,9 +162,12 @@ public class InventoryDatabase {
 					+ "team integer NOT NULL, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
 					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL);" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text NOT NULL, "
+					+ "time integer NOT NULL);" );
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL,"
 					+ "container integer NOT NULL, owner integer NOT NULL, location text, time integer NOT NULL, "
-					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id) );" );
+					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id),"
+					+ "FOREIGN KEY (name) REFRENCES itemname(id);" );
 
 			/* Add default values to tables */
 			ResultSet rs;
@@ -279,21 +287,29 @@ public class InventoryDatabase {
 		return result.toArray( new String[ result.size() ] );
 	}
 
-	public String[] getAllItems() {
-		List<String> result = new ArrayList<String>();
+	public String[][] getAllItems() {
+		List<List<String>> result = new ArrayList<List<String>>();
 		ResultSet rs;
 
 		try {
-			rs =  statement.executeQuery("SELECT name FROM item;");
-
+			rs =  statement.executeQuery("SELECT id FROM item;");
+			
+			int index = 0;
 			while( rs.next() ) {
-				result.add( rs.getString("name") );
+				result.set( index, new ArrayList<String>() );
+				ResultSet rs2 = statement.executeQuery("SELECT name FROM itemname WHERE id = " + rs.getLong("id") + ";");
+				
+				while( rs2.next() ) {
+					result.get(index).add( rs2.getString("name") );
+				}
+				
+				index++;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-		return result.toArray( new String[ result.size() ] );
+		return toArray( result );
 	}
 
 	public String[] getContainters( String inventory ) {
@@ -313,21 +329,52 @@ public class InventoryDatabase {
 		return result.toArray( new String[ result.size() ] );
 	}
 
-	public String[] getItems( String container ) {
-		List<String> result = new ArrayList<String>();
-		ResultSet rs;
+	public String[][] getItems( String container ) {
+		List<List<String>> result = new ArrayList<List<String>>();
 
 		try {
-			rs =  statement.executeQuery("SELECT name FROM item WHERE container = " + getContainerID( container ) + ";");
+			ResultSet rs;
+			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + getContainerID(container) + ";");
 
+			int index = 0;
 			while( rs.next() ) {
-				result.add( rs.getString("name") );
+				result.add( index, new ArrayList<String>() );
+				long id = rs.getLong("id");
+
+				ResultSet rs2;
+				rs2 = statement.executeQuery("SELECT name FROM itemname WHERE id = " + id + ";");
+				while( rs2.next() ) {
+					result.get(index).add( rs2.getString("name") );
+				}
+
+				index++;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
-		return result.toArray( new String[ result.size() ] );
+		return toArray( result );
+	}
+
+	/* Get all names for the items */
+	public String[] getItemNames( String name ) {
+		List<String> names = new ArrayList<String>();
+
+		try {
+			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + name + "';");
+			rs.next();
+			long id = rs.getLong("id");
+
+			rs = statement.executeQuery("SELECT name FROM itemname WHERE id = " + id + ";");
+			while( rs.next() ) {
+				names.add( rs.getString("name") );
+			}
+
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+		return names.toArray( new String[ names.size() ] );
 	}
 
 	/* Get all info about the thing */
@@ -369,7 +416,7 @@ public class InventoryDatabase {
 		return result;
 	}
 
-	public Map<String, Object> getItem( String item ){
+	public Map<String, Object> getItem( String item ){ // Does not play well with aliases
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
 
@@ -599,13 +646,53 @@ public class InventoryDatabase {
 		return true;
 	}
 
-	public boolean setItemName( String oldName, String newName ) throws EntryNotExistException {
+	public boolean removeItemName( String item ) throws EntryNotExistException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		}
+
+		try {
+			statement.executeUpdate("REMOVE FROM itemname WHERE name = '" + item + "';");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	public boolean addItemName( String oldName, String newName ) throws EntryNotExistException {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET name = '" + newName + "', time = " + getTime() + " WHERE id = " + getItemID(oldName) + ";");
+			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + oldName + "';");
+			rs.next();
+			long rowID = rs.getLong("id");
+
+			statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", " + newName + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	public boolean addItemName( String oldName, String[] newName ) throws EntryNotExistException {
+		if( !itemExists( oldName ) ) {
+			throw new EntryNotExistException( oldName );
+		}
+
+		try {
+			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + oldName + "';");
+			rs.next();
+			long rowID = rs.getLong("id");
+
+			for( String i : newName ) {
+				statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", " + i + ";");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -739,14 +826,35 @@ public class InventoryDatabase {
 
 	public void newItem( String name, String container, String team ) {
 		try {
-			statement.executeUpdate("INSERT INTO item ( name, container, team, time ) VALUES '" + name + "', '" + container + "', " + team + "', " + getTime() + ";");
+			long time = getTime();
+			statement.executeUpdate("INSERT INTO item ( container, team, time ) VALUES '" + container + "', " + team + "', " + time + ";");
+			ResultSet rs = statement.executeQuery("SELECT id FROM item WHERE container = " + container + ", team = " + team + "', time = " + time + ";" );
+			rs.next();
+			long rowID = rs.getLong("id");
+			statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", '" + name + "';");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void newItem( String name, String container, String location, String team ) {
+	public void newItem( String[] names, String container, String team ) {
+		try {
+			long rowID = -1;
+			ResultSet rs;
+			long time = getTime();
 
+			statement.executeUpdate("INSERT INTO item ( container, team, time ) VALUES '" + container + "', " + team + "', " + time + ";");
+
+			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + container + ", team = " + team + "', time = " + time + ";" );
+			rs.next();
+			rowID = rs.getLong("id");
+
+			for( String name : names ) {
+				statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", '" + name + "';");
+			}
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
 	}
 
 	public void newTeam( String name, long id ) {
@@ -765,7 +873,7 @@ public class InventoryDatabase {
 
 	private long getInventoryID( String inventory ) { // Should these be public?
 		long id = -1;
-		
+
 		try {
 			ResultSet rs = statement.executeQuery("SELECT id FROM inventory WHERE name = '" + inventory + "';");
 			rs.next();
@@ -792,17 +900,7 @@ public class InventoryDatabase {
 	}
 
 	private long getItemID( String item ) {
-		long id = -1;
-
-		try {
-			ResultSet rs = statement.executeQuery("SELECT id FROM item WHERE name = '" + item + "';");
-			rs.next();
-			id = rs.getLong("id");
-		} catch( SQLException e ) {
-			e.printStackTrace();
-		}
-
-		return id;
+		return getItemNameID( item ); // The item name database uses the item id as the key
 	}
 
 	private long getTeamID( String team ) {
@@ -817,5 +915,41 @@ public class InventoryDatabase {
 		}
 
 		return id;
+	}
+
+	private long getItemNameID( String item ) {
+		ResultSet rs;
+		try {
+			rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + item + "';");
+			rs.next();
+			return rs.getLong("id");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+
+	private String[][] toArray( List<List<String>> list ){
+		int size = 0;
+		for( List<String> l : list ) {
+			if( l.size() > size ) {
+				size = l.size();
+			}
+		}
+		
+		String[][] result = new String[ list.size() ][ size ];
+
+		int index = 0;
+		for( List<String> l : list ) {
+			int index2 = 0;
+
+			for( String s : l ) {
+				result[index][index2] = s;
+				index2++;
+			}
+
+			index++;
+		}
+		return result;
 	}
 }

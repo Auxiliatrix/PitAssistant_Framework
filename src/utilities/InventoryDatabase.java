@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import constants.Calibration;
+import sun.awt.image.SunWritableRaster;
 
 public class InventoryDatabase {
 	private static SimpleDateFormat sdf = new SimpleDateFormat( Calibration.DATEFORMAT );
@@ -69,6 +70,39 @@ public class InventoryDatabase {
 	}
 
 	/* Useful utilites */
+	
+	public boolean isInitialized() {
+		// Checks to see if the database is correct
+		// Needs work
+		try {
+			ResultSet rs;
+			
+			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='team';");
+			if( rs.getFetchSize() == 0 ) {
+				return false;
+			}
+			
+			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='item';");
+			if( rs.getFetchSize() == 0 ) {
+				return false;
+			}
+			
+			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='container';");
+			if( rs.getFetchSize() == 0 ) {
+				return false;
+			}
+			
+			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='inventory';");
+			if( rs.getFetchSize() == 0 ) {
+				return false;
+			}
+
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		
+		return true;
+	}
 
 	public boolean backup() {
 		/* Useful if using a memory database */

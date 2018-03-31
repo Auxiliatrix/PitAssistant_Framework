@@ -37,9 +37,9 @@ public class Inventory {
 			ArrayList<ItemPair> subResults = container.search(query);
 			if( !subResults.isEmpty() ) {
 				if( !exact ) {
-					if( subResults.get(0).value == 0 ) {
-						exact = true;
-						results.clear();
+					if( subResults.get(0).value == 0 ) { // A perfect match
+						exact = true; // Only add perfect values
+						results.clear(); // Remove all the worse matches
 					}
 					results.add(subResults);
 				} else {

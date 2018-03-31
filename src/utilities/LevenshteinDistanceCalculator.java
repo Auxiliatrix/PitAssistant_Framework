@@ -15,6 +15,15 @@ public class LevenshteinDistanceCalculator {
 		return Math.min(characterComparison, wordComparison);
 	}
 	
+	public double optimalComparison( String a, String[] b ) {
+		double min = Double.MAX_VALUE;
+		for( String s : b ) {
+			double value = optimalComparison(a, s);
+			min = Math.min(min, value);
+		}
+		return min;
+	}
+	
 	public double optimalComparison(String a, ArrayList<String> b) {
 		double min = Double.MAX_VALUE;
 		for( String s : b ) {

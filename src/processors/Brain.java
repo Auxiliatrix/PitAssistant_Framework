@@ -7,12 +7,14 @@ import constants.Calibration;
 import modules.Module;
 import objects.Inventory;
 import pairs.ItemPair;
+import utilities.InventoryDatabase;
 import utilities.InventoryLoader;
 
 public class Brain {
 
 	public static Scanner sc = new Scanner(System.in);
 	public static InventoryLoader loader = new InventoryLoader();
+	public static InventoryDatabase data = new InventoryDatabase( Calibration.DATABASE_NAME );
 	
 	public static Inventory inventory = new Inventory(Calibration.TEAM);
 	public static ArrayList<Module> modules = new ArrayList<Module>();
@@ -49,6 +51,12 @@ public class Brain {
 	
 	public static void init() {
 		loader.load(Calibration.FILE_NAME);
+		
+		// Load database
+		if( !data.isInitialized() ) {
+			data.init();
+		}
+		
 		loadModules();
 	}
 	

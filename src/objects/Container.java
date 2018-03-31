@@ -4,41 +4,42 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import constants.Calibration;
-import pairs.ItemPair;
-import pairs.ItemPairComparator;
+import pairs.Pair;
+import pairs.PairComparator;
+import processors.Brain;
 import utilities.LevenshteinDistanceCalculator;
 
 public class Container {
-	
+
 	public String name;
 	public String originalTeam;
 	public ArrayList<Item> items;
-	
+
 	public Container(String name) {
 		this(name, Calibration.TEAM);
 	}
-	
+
 	public Container(String name, String originalTeam) {
 		this.name = name;
 		this.originalTeam = originalTeam;
 		items = new ArrayList<Item>();
 	}
-	
+
 	public void addOrigin(Item item) {
 		item.originalContainer = this.name;
 		item.originalTeam = this.originalTeam;
 		items.add(item);
 	}
-	
+
 	public void add(Item item) {
 		items.add(item);
 	}
-	
-	public ArrayList<ItemPair> search(String query) {
-		ArrayList<ItemPair> matches;
-		ArrayList<ItemPair> exacts;
-		ArrayList<ItemPair> partials;
-		
+
+	public ArrayList<Pair> search(String query) {
+		ArrayList<Pair> matches;
+		ArrayList<Pair> exacts;
+		ArrayList<Pair> partials;
+
 		exacts = getExacts( query );
 		partials = getPartials(query);
 		if( !exacts.isEmpty() ) {
@@ -46,34 +47,40 @@ public class Container {
 		} else if( !partials.isEmpty() ) {
 			matches = partials;
 		} else {
-			matches = new ArrayList<ItemPair>();
+			matches = new ArrayList<Pair>();
 		}
 		return matches;
 	}
-	
-	public ArrayList<ItemPair> getExacts(String query) {
-		ArrayList<ItemPair> exacts = new ArrayList<ItemPair>();
-		for( Item i : items ) {
-			if( i.name.equalsIgnoreCase(query) ) {
-				exacts.add(new ItemPair(i, 0));
+
+	public ArrayList<Pair> getExacts(String query) {
+		ArrayList<Pair> exacts = new ArrayList<Pair>();
+		String[][] itemNames = Brain.data.getAllItems();
+		for( String[] i : itemNames ) {
+			for( String n : i ) {
+				if( n.equalsIgnoreCase(query) ) {
+					exacts.add( new Pair(n, 0) );
+				}
 			}
 		}
 		return exacts;
 	}
-	
-	public ArrayList<ItemPair> getPartials(String query) {
+
+	public ArrayList<Pair> getPartials(String query) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();
-		ArrayList<ItemPair> partials = new ArrayList<ItemPair>();
-		for( Item i : items ) {
-			double distance = ldc.optimalComparison(query, i.aliases);
-			
+		ArrayList<Pair> partials = new ArrayList<Pair>();
+		String[][] itemNames = Brain.data.getAllItems();
+
+		for( String[] i : itemNames ) {
+			double distance = ldc.optimalComparison( query, i );
+
 			if( distance <= Calibration.LEVENSHTEIN_TOLERANCE ) {
-				partials.add(new ItemPair(i, distance));
+				partials.add( new Pair( i[0], distance ) ); // Use the first name. Could be better...
 			}
 		}
-		ItemPair[] pairs = partials.toArray(new ItemPair[partials.size()]);
-		Arrays.sort(pairs, new ItemPairComparator());
-		return new ArrayList<ItemPair>(Arrays.asList(pairs));
+
+		Pair[] pairs = partials.toArray( new Pair[ partials.size() ] );
+		Arrays.sort( pairs, new PairComparator() );
+		return new ArrayList<Pair>( Arrays.asList(pairs)) ;
 	}
-	
+
 }

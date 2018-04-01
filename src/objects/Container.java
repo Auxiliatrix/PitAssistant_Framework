@@ -7,6 +7,7 @@ import constants.Calibration;
 import pairs.Pair;
 import pairs.PairComparator;
 import processors.Brain;
+import utilities.EntryNotExistException;
 import utilities.LevenshteinDistanceCalculator;
 
 public class Container {
@@ -26,13 +27,17 @@ public class Container {
 	}
 
 	public void addOrigin(Item item) {
-		item.originalContainer = this.name;
-		item.originalTeam = this.originalTeam;
-		items.add(item);
+		Brain.data.newItem( item.name, this.name, this.originalTeam, this.originalTeam );
+		
+		try { // Add the other names too
+			Brain.data.addItemName( item.name, item.aliases );
+		} catch( EntryNotExistException e ) {
+			e.printStackTrace();
+		}
 	}
 
 	public void add(Item item) {
-		items.add(item);
+		
 	}
 
 	public ArrayList<Pair> search(String query) {

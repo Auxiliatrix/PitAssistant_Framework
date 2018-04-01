@@ -161,7 +161,7 @@ public class InventoryDatabase {
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text NOT NULL, "
 					+ "time integer NOT NULL);" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL,"
-					+ "container integer NOT NULL, owner integer NOT NULL, location text, time integer NOT NULL, "
+					+ "container integer NOT NULL, owner integer NOT NULL, origincontainer integer, time integer NOT NULL, "
 					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id),"
 					+ "FOREIGN KEY (name) REFRENCES itemname(id);" );
 
@@ -500,7 +500,30 @@ public class InventoryDatabase {
 		try {
 			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getItemID( item ) + ";");
 			rs.next();
-			location = rs.getString("inventory");
+			long locationID = rs.getLong("origincontainer");
+			
+			ResultSet rs2 = statement.executeQuery("SELECT name FROM container WHERE id = " + locationID + ";");
+			rs2.next();
+			location = rs2.getString("name");
+		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+		return location;
+	}
+	
+	public String getItemOriginLocation( String item ) {
+		String location = "";
+		ResultSet rs;
+
+		try {
+			rs = statement.executeQuery("SELECT origincontainer FROM item WHERE id = " + getItemID( item ) + ";");
+			rs.next();
+			long locationID = rs.getLong("origincontainer");
+			
+			ResultSet rs2 = statement.executeQuery("SELECT name FROM container WHERE id = " + locationID + ";");
+			rs2.next();
+			location = rs2.getString("name");
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -588,6 +611,23 @@ public class InventoryDatabase {
 		}
 
 
+		return true;
+	}
+	
+	public boolean setItemOriginContainer( String item, String container ) throws EntryNotExistException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		} else if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		}
+		
+		try {
+			statement.executeUpdate("UPDATE item SET origincontainer = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
 		return true;
 	}
 
@@ -695,6 +735,10 @@ public class InventoryDatabase {
 		}
 
 		return true;
+	}
+	
+	public boolean addItemName( String oldName, List<String> newName ) throws EntryNotExistException {
+		return addItemName( oldName, newName.toArray( new String[ newName.size() ] ) );
 	}
 
 	public boolean setContainerName( String oldName, String newName ) throws EntryNotExistException {
@@ -821,9 +865,17 @@ public class InventoryDatabase {
 	}
 
 	public void newItem( String name, String container, String team ) {
+		newItem( name, container, container, team );
+	}
+
+	public void newItem( String[] names, String container, String team ) {
+		newItem( names, container, container, team );
+	}
+	
+	public void newItem( String name, String container, String originContainer, String team ) {
 		try {
 			long time = getTime();
-			statement.executeUpdate("INSERT INTO item ( container, team, time ) VALUES '" + container + "', " + team + "', " + time + ";");
+			statement.executeUpdate("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
 			ResultSet rs = statement.executeQuery("SELECT id FROM item WHERE container = " + container + ", team = " + team + "', time = " + time + ";" );
 			rs.next();
 			long rowID = rs.getLong("id");
@@ -833,15 +885,15 @@ public class InventoryDatabase {
 		}
 	}
 
-	public void newItem( String[] names, String container, String team ) {
+	public void newItem( String[] names, String container, String originContainer, String team ) {
 		try {
 			long rowID = -1;
 			ResultSet rs;
 			long time = getTime();
 
-			statement.executeUpdate("INSERT INTO item ( container, team, time ) VALUES '" + container + "', " + team + "', " + time + ";");
+			statement.executeUpdate("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
 
-			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + container + ", team = " + team + "', time = " + time + ";" );
+			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + getContainerID(container) + ", origincontainer = " + getContainerID(originContainer) + ", team = " + team + "', time = " + time + ";" );
 			rs.next();
 			rowID = rs.getLong("id");
 

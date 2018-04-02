@@ -66,7 +66,7 @@ public class Container {
 		ArrayList<Pair> partials;
 
 		exacts = getExacts( query );
-		partials = getPartials(query);
+		partials = getPartials( query );
 		if( !exacts.isEmpty() ) {
 			matches = exacts;
 		} else if( !partials.isEmpty() ) {
@@ -77,9 +77,9 @@ public class Container {
 		return matches;
 	}
 
-	public ArrayList<Pair> getExacts(String query) {
+	public ArrayList<Pair> getExacts( String container, String query ) {
 		ArrayList<Pair> exacts = new ArrayList<Pair>();
-		String[][] itemNames = Brain.data.getAllItems();
+		String[][] itemNames = Brain.data.getItems( container );
 		for( String[] i : itemNames ) {
 			for( String n : i ) {
 				if( n.equalsIgnoreCase(query) ) {
@@ -90,10 +90,10 @@ public class Container {
 		return exacts;
 	}
 
-	public ArrayList<Pair> getPartials(String query) {
+	public ArrayList<Pair> getPartials( String container, String query ) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();
 		ArrayList<Pair> partials = new ArrayList<Pair>();
-		String[][] itemNames = Brain.data.getAllItems();
+		String[][] itemNames = Brain.data.getItems( container );
 
 		for( String[] i : itemNames ) {
 			double distance = ldc.optimalComparison( query, i );

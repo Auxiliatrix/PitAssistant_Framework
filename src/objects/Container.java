@@ -14,7 +14,6 @@ public class Container {
 
 	public String name;
 	public String originalTeam;
-	public ArrayList<Item> items;
 
 	public Container(String name) {
 		this(name, Calibration.TEAM);
@@ -23,21 +22,42 @@ public class Container {
 	public Container(String name, String originalTeam) {
 		this.name = name;
 		this.originalTeam = originalTeam;
-		items = new ArrayList<Item>();
 	}
 
 	public void addOrigin(Item item) {
-		Brain.data.newItem( item.name, this.name, this.originalTeam, this.originalTeam );
-		
-		try { // Add the other names too
-			Brain.data.addItemName( item.name, item.aliases );
-		} catch( EntryNotExistException e ) {
-			e.printStackTrace();
+		if( Brain.data.itemExists( item.name ) ) {
+			try {
+				Brain.data.setItemOriginContainer( item.name, this.name );
+			} catch (EntryNotExistException e) {
+				e.printStackTrace();
+			}
+		} else {
+			Brain.data.newItem( item.name, this.name, this.name, this.originalTeam );
+			
+			try { // Add the other names too
+				Brain.data.addItemName( item.name, item.aliases );
+			} catch( EntryNotExistException e ) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public void add(Item item) {
-		
+		if( Brain.data.itemExists( item.name ) ) {
+			try {
+				Brain.data.setItemContainer( item.name, this.name );
+			} catch (EntryNotExistException e) {
+				e.printStackTrace();
+			}
+		} else {
+			Brain.data.newItem( item.name, this.name, this.name, this.originalTeam );
+			
+			try { // Add the other names too
+				Brain.data.addItemName( item.name, item.aliases );
+			} catch( EntryNotExistException e ) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public ArrayList<Pair> search(String query) {

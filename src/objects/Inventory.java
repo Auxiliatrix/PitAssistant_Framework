@@ -8,6 +8,8 @@ import pairs.ContainerPair;
 import pairs.ContainerPairComparator;
 import pairs.ItemPair;
 import pairs.ItemPairComparator;
+import pairs.Pair;
+import pairs.PairComparator;
 import utilities.LevenshteinDistanceCalculator;
 
 public class Inventory {
@@ -29,12 +31,12 @@ public class Inventory {
 		containers.add(container);
 	}
 	
-	public ArrayList<ItemPair> search(String query) {
-		ArrayList<ItemPair> matches = new ArrayList<ItemPair>();
+	public ArrayList<Pair> search(String query) {
+		ArrayList<Pair> matches = new ArrayList<Pair>();
 		boolean exact = false;
-		ArrayList<ArrayList<ItemPair>> results = new ArrayList<ArrayList<ItemPair>>();
+		ArrayList<ArrayList<Pair>> results = new ArrayList<ArrayList<Pair>>();
 		for( Container container : containers ) {
-			ArrayList<ItemPair> subResults = container.search(query);
+			ArrayList<Pair> subResults = container.search(query);
 			if( !subResults.isEmpty() ) {
 				if( !exact ) {
 					if( subResults.get(0).value == 0 ) { // A perfect match
@@ -49,15 +51,15 @@ public class Inventory {
 				}
 			}
 		}
-		for( ArrayList<ItemPair> result : results ) {
+		for( ArrayList<Pair> result : results ) {
 			matches.addAll(result);
 		}
 		if( exact ) {
 			return matches;
 		} else {
-			ItemPair[] pairs = matches.toArray(new ItemPair[matches.size()]);
-			Arrays.sort(pairs, new ItemPairComparator());
-			return new ArrayList<ItemPair>(Arrays.asList(pairs));
+			Pair[] pairs = matches.toArray( new Pair[ matches.size() ] );
+			Arrays.sort( pairs, new PairComparator()) ;
+			return new ArrayList<Pair>( Arrays.asList(pairs) );
 		}
 	}
 	

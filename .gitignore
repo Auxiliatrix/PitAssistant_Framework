@@ -31,7 +31,6 @@ hs_err_pid*
 .settings
 
 # Gradle files
-gradle/
 .gradle/
 .gradletasknamecache
 build/

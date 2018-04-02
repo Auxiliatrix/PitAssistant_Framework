@@ -34,7 +34,7 @@ public class Brain {
 			if( handled ) {
 				System.out.println(response);
 			} else {
-				ArrayList<ItemPair> results = inventory.search(input);
+				ArrayList<Pair> results = inventory.search(input);
 				if( results.isEmpty() ) {
 					System.out.println("No results found.");
 				} else if( results.get(0).value == 0 ) {

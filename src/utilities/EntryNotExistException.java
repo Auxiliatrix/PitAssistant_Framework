@@ -10,6 +10,10 @@ public class EntryNotExistException extends Exception {
 		super("The entry " + entry + " does not exist");
 	}
 	
+	public EntryNotExistException( long entry ) {
+		super("The entry " + entry + " does not exist");
+	}
+	
 	public EntryNotExistException() {
 		super("The accessed entry does not exist");
 	}

@@ -87,6 +87,11 @@ public class InventoryDatabase {
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
+			
+			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='itemname';");
+			if( rs.getFetchSize() == 0 ) {
+				return false;
+			}
 
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='container';");
 			if( rs.getFetchSize() == 0 ) {
@@ -104,12 +109,21 @@ public class InventoryDatabase {
 
 		return true;
 	}
-
+	
+	/**
+	 * Copies the loaded database to the location specified in the configuration
+	 * @return boolean Whether the operation was successful, or threw an error
+	 */
 	public boolean backup() {
 		/* Useful if using a memory database */
 		return backup( Calibration.BACKUP_DATABASE );
 	}
 
+	/**
+	 * Copies the loaded database to the location specified by file.
+	 * @param file The file to copy the loaded database to
+	 * @return boolean Whether the operation was successful, or threw an error
+	 */
 	public boolean backup( String file ) {
 		try {
 			statement.executeUpdate( "backup to " + file );
@@ -120,10 +134,19 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Loads the database stored in the location given in the configuration file.
+	 * @return boolean Wheter the operation was successful, or threw an error
+	 */
 	public boolean restore() {
 		return restore( Calibration.BACKUP_DATABASE );
 	}
 
+	/**
+	 * Loads the database stored in the location given by name.
+	 * @param name The file to load info from
+	 * @return boolean Wheter the operation was successful, or threw an error
+	 */
 	public boolean restore( String name ) {
 		/* Load database, useful for in-memory databases */
 		try {
@@ -135,8 +158,13 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Shut down the currently accessed database.
+	 * This should be called before stopping the program.
+	 */
 	public void close() {
 		try {
+			statement.close();
 			connection.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -579,6 +607,15 @@ public class InventoryDatabase {
 
 	/* SET DATABASE VALUES */
 
+	/**
+	 * Sets the given item's current container to be equal to the given container.
+	 * The current container should be condsidered current location of the item.
+	 * It does not nessessarily reflect the item's proper storage location.
+	 * @param container The name of the container to alter
+	 * @param inventory The inventory name to set as the inventory of the item
+	 * @return Whether setting the item comtainer was successful or not
+	 * @throws EntryNotExistException Thrown when the given container or inventory is not found in the database
+	 */
 	public boolean setContainerInventory( String container, String inventory ) throws EntryNotExistException {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
@@ -596,6 +633,15 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Sets the given item's current container to be equal to the given container.
+	 * The current container should be condsidered current location of the item.
+	 * It does not nessessarily reflect the item's proper storage location.
+	 * @param item The name of the item to alter
+	 * @param container The container name to set as the current container of the item
+	 * @return Whether setting the item comtainer was successful or not
+	 * @throws EntryNotExistException Thrown when the given item or container is not found in the database
+	 */
 	public boolean setItemContainer( String item, String container ) throws EntryNotExistException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
@@ -614,6 +660,15 @@ public class InventoryDatabase {
 		return true;
 	}
 	
+	/**
+	 * Sets the given item's original container to be equal to the given container.
+	 * The original container should be condsidered the proper place for the item, when stored properly.
+	 * It does not nessessarily reflect the item's current location.
+	 * @param item The name of the item to alter
+	 * @param container The container name to set as the origin of the item
+	 * @return Whether setting the item origin was successful or not
+	 * @throws EntryNotExistException Thrown when the given item or container is not found in the database
+	 */
 	public boolean setItemOriginContainer( String item, String container ) throws EntryNotExistException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
@@ -631,6 +686,13 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Changes the owner of the given item to the team name given
+	 * @param inventory The item name of the entry to alter
+	 * @param team The team owner to set the entry to
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given item or team is not found in the database
+	 */
 	public boolean setItemOwner( String item, String team ) throws EntryNotExistException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
@@ -648,6 +710,13 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Changes the owner of the given container to the team name given
+	 * @param inventory The container name of the entry to alter
+	 * @param team The team owner to set the entry to
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given container or team is not found in the database
+	 */
 	public boolean setContainerOwner( String container, String team ) throws EntryNotExistException {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
@@ -665,6 +734,13 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Changes the owner of the given inventory to the team name given
+	 * @param inventory The inventory name of the entry to alter
+	 * @param team The team owner to set the entry to
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given inventory or team is not found in the database
+	 */
 	public boolean setInventoryOwner( String inventory, String team ) throws EntryNotExistException {
 		if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
@@ -681,7 +757,86 @@ public class InventoryDatabase {
 
 		return true;
 	}
+	
+	/**
+	 * Changes the owner of the given item to the team id given
+	 * @param inventory The item name of the entry to alter
+	 * @param team The team owner to set the entry to
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given item or team is not found in the database
+	 */
+	public boolean setItemOwner( String item, long team ) throws EntryNotExistException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		} else if( !teamExists( team ) ) {
+			throw new EntryNotExistException( team );
+		}
 
+		try {
+			statement.executeUpdate("UPDATE item SET team = " + team + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Changes the owner of the given container to the team id given
+	 * @param inventory The container name of the entry to alter
+	 * @param team The team owner to set the entry to
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given container or team is not found in the database
+	 */
+	public boolean setContainerOwner( String container, long team ) throws EntryNotExistException {
+		if( !containerExists( container ) ) {
+			throw new EntryNotExistException( container );
+		} else if( !teamExists( team ) ) {
+			throw new EntryNotExistException( team );
+		}
+
+		try {
+			statement.executeUpdate("UPDATE container SET team = " + team + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Changes the owner of the given inventory to the team id given
+	 * @param inventory The inventory name of the entry to alter
+	 * @param team The team owner to set the entry to
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given inventory or team is not found in the database
+	 */
+	public boolean setInventoryOwner( String inventory, long team ) throws EntryNotExistException {
+		if( !inventoryExists( inventory ) ) {
+			throw new EntryNotExistException( inventory );
+		} else if( !teamExists( team ) ) {
+			throw new EntryNotExistException( team );
+		}
+
+		try {
+			statement.executeUpdate("UPDATE item SET team = " + team + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+	
+	/**
+	 * Removes the name given from the item it corresponds to.
+	 * Beware that if you remove the only remaining name from the item, it will become impossible to refrence the item
+	 * @param item The name to remove from the matching item
+	 * @return Whether removing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given item is not found in the database
+	 */
 	public boolean removeItemName( String item ) throws EntryNotExistException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
@@ -697,6 +852,13 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Adds a new name to the item that possesses the old name
+	 * @param oldName The original name of the item
+	 * @param newName The new name to add to the item
+	 * @return Whether adding the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given item is not found in the database
+	 */
 	public boolean addItemName( String oldName, String newName ) throws EntryNotExistException {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
@@ -716,6 +878,13 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Replaces the old name of the item with the new name
+	 * @param oldName The original name of the item
+	 * @param newName The new name to set the item to
+	 * @return Whether changing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given item is not found in the database
+	 */
 	public boolean addItemName( String oldName, String[] newName ) throws EntryNotExistException {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
@@ -741,6 +910,13 @@ public class InventoryDatabase {
 		return addItemName( oldName, newName.toArray( new String[ newName.size() ] ) );
 	}
 
+	/**
+	 * Replaces the old name of the container with the new name
+	 * @param oldName The original name of the container
+	 * @param newName The new name to set the container to
+	 * @return Whether changing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given container is not found in the database
+	 */
 	public boolean setContainerName( String oldName, String newName ) throws EntryNotExistException {
 		if( !containerExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
@@ -756,6 +932,13 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Replaces the old name of the inventory with the new name
+	 * @param oldName The original name of the inventory
+	 * @param newName The new name to set the inventory to
+	 * @return Whether changing the name was successful or not
+	 * @throws EntryNotExistException Thrown when the given inventory is not found in the database
+	 */
 	public boolean setInventoryName( String oldName, String newName ) throws EntryNotExistException {
 		if( !inventoryExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
@@ -801,6 +984,12 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Sets the given item to the default owner, which is set to be a nonexistent team
+	 * @param item The item to modify
+	 * @return Whether the action succeeded or not
+	 * @throws EntryNotExistException Thrown when the given item is not found in the database
+	 */
 	public boolean setItemTeamToDefault( String item ) throws EntryNotExistException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
@@ -816,6 +1005,12 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Sets the given container to the default owner, which is set to be a nonexistent team
+	 * @param container The container to modify
+	 * @return Whether the action succeeded or not
+	 * @throws EntryNotExistException Thrown when the given container is not found in the database
+	 */
 	public boolean setContainerTeamToDefault( String container ) throws EntryNotExistException {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
@@ -831,6 +1026,12 @@ public class InventoryDatabase {
 		return true;
 	}
 
+	/**
+	 * Sets the given inventory to the default owner, which is set to be a nonexistent team
+	 * @param inventory The inventory to modify
+	 * @return Whether the action succeeded or not
+	 * @throws EntryNotExistException Thrown when the given inventory is not found in the database
+	 */
 	public boolean setInventoryTeamToDefault( String inventory ) throws EntryNotExistException {
 		if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
@@ -848,6 +1049,11 @@ public class InventoryDatabase {
 
 	/* CREATE OBJECTS */
 
+	/**
+	 * Creates a new inventory entry, for holding containers
+	 * @param name The name of the inventory
+	 * @param team The team tbat owns the inventory
+	 */
 	public void newInventory( String name, String team ) {
 		try {
 			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES '" + name + "', '" + team + "', " + getTime() + ";");
@@ -856,6 +1062,12 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Creates a new container entry, for holding items
+	 * @param name The name of the container
+	 * @param inventory The inventory that this container resides within
+	 * @param team The team that owns the container
+	 */
 	public void newContainer( String name, String inventory, String team ) {
 		try {
 			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES '" + name + "', '" + inventory + "', " + team + "', " + getTime() + ";");
@@ -864,14 +1076,33 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Creates a new item entry, where the conainer and origin container values are the same
+	 * @param name The name of the item
+	 * @param container The container the item resides within, same as the origin container
+	 * @param team The team that owns the item
+	 */
 	public void newItem( String name, String container, String team ) {
 		newItem( name, container, container, team );
 	}
 
+	/**
+	 * Creates a new item entry, where the conainer and origin container values are the same
+	 * @param names All of the possible names used to refrence the item
+	 * @param container The container the item resides within, same as the origin container
+	 * @param team The team that owns the item
+	 */
 	public void newItem( String[] names, String container, String team ) {
 		newItem( names, container, container, team );
 	}
 	
+	/**
+	 * Creates a new item entry
+	 * @param name The name of the item
+	 * @param container The current container the item resides within
+	 * @param originContainer The container the item belongs to
+	 * @param team The team that owns the item
+	 */
 	public void newItem( String name, String container, String originContainer, String team ) {
 		try {
 			long time = getTime();
@@ -885,6 +1116,13 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Creates a new item entry
+	 * @param names All of the possible names used to refrence the item
+	 * @param container The current container the item resides within
+	 * @param originContainer The container the item belongs to
+	 * @param team The team that owns the item
+	 */
 	public void newItem( String[] names, String container, String originContainer, String team ) {
 		try {
 			long rowID = -1;
@@ -904,7 +1142,12 @@ public class InventoryDatabase {
 			e.printStackTrace();
 		}
 	}
-
+	
+	/**
+	 * Creates a new team entry
+	 * @param name String representing the team name
+	 * @param id long representing the team number
+	 */
 	public void newTeam( String name, long id ) {
 		try {
 			statement.executeUpdate("INSERT INTO team ( id, name ) VALUES " + id + ", '" + name + "';");

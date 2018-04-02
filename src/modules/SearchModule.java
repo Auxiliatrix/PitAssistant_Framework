@@ -18,6 +18,7 @@ public class SearchModule extends Module {
 		String response = "";
 		ArrayList<String> lines = new ArrayList<String>();
 		ArrayList<Pair> results = searchInventory( input );
+
 		if( results.isEmpty() ) {
 			response += "No results found.\n";
 		} else if( results.get(0).value == 0 ) {
@@ -25,9 +26,11 @@ public class SearchModule extends Module {
 		} else {
 			response += "I couldn't find \"" + input + "\". Did you mean:\n";
 		}
+
 		for( Pair p : results ) {
 			lines.add( p.name );
 		}
+		
 		return response + consolidate(lines);
 	}
 	

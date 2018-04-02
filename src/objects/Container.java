@@ -14,13 +14,15 @@ import utilities.LevenshteinDistanceCalculator;
 public class Container {
 
 	public String name;
-	public String originalTeam;
 
+	public boolean originalTeam; // boolean
+	public ArrayList<Item> items;
+	
 	public Container(String name) {
-		this(name, Calibration.TEAM);
+		this(name, false);
 	}
-
-	public Container(String name, String originalTeam) {
+	
+	public Container(String name, boolean originalTeam) {
 		this.name = name;
 		this.originalTeam = originalTeam;
 	}
@@ -33,7 +35,7 @@ public class Container {
 				e.printStackTrace();
 			}
 		} else {
-			Brain.data.newItem( item.name, this.name, this.name, this.originalTeam );
+			Brain.data.newItem( item.name, this.name, this.name );
 			
 			try { // Add the other names too
 				Brain.data.addItemName( item.name, item.aliases );
@@ -41,6 +43,9 @@ public class Container {
 				e.printStackTrace();
 			}
 		}
+		item.originalContainer = this.name;
+		item.originalTeam = this.originalTeam;
+		add(item);
 	}
 
 	public void add(Item item) {
@@ -51,7 +56,7 @@ public class Container {
 				e.printStackTrace();
 			}
 		} else {
-			Brain.data.newItem( item.name, this.name, this.name, this.originalTeam );
+			Brain.data.newItem( item.name, this.name, this.name );
 			
 			try { // Add the other names too
 				Brain.data.addItemName( item.name, item.aliases );
@@ -59,6 +64,9 @@ public class Container {
 				e.printStackTrace();
 			}
 		}
+
+		item.currentContainer = this.name;
+		items.add(item);
 	}
 
 	public ArrayList<Pair> search(String query) {

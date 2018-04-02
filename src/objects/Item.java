@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import constants.Calibration;
 
+@Deprecated
 public class Item {
 	public String name;
 	public String originalContainer;

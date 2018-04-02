@@ -6,12 +6,11 @@ import java.util.Arrays;
 import constants.Calibration;
 import pairs.ContainerPair;
 import pairs.ContainerPairComparator;
-import pairs.ItemPair;
-import pairs.ItemPairComparator;
 import pairs.Pair;
 import pairs.PairComparator;
 import utilities.LevenshteinDistanceCalculator;
 
+@Deprecated
 public class Inventory {
 	
 	public ArrayList<Container> containers;

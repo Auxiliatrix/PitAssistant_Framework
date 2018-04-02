@@ -10,6 +10,7 @@ import processors.Brain;
 import utilities.EntryNotExistException;
 import utilities.LevenshteinDistanceCalculator;
 
+@Deprecated
 public class Container {
 
 	public String name;
@@ -77,9 +78,9 @@ public class Container {
 		return matches;
 	}
 
-	public ArrayList<Pair> getExacts( String container, String query ) {
+	public ArrayList<Pair> getExacts( String query ) {
 		ArrayList<Pair> exacts = new ArrayList<Pair>();
-		String[][] itemNames = Brain.data.getItems( container );
+		String[][] itemNames = Brain.data.getItems( name );
 		for( String[] i : itemNames ) {
 			for( String n : i ) {
 				if( n.equalsIgnoreCase(query) ) {
@@ -90,10 +91,10 @@ public class Container {
 		return exacts;
 	}
 
-	public ArrayList<Pair> getPartials( String container, String query ) {
+	public ArrayList<Pair> getPartials( String query ) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();
 		ArrayList<Pair> partials = new ArrayList<Pair>();
-		String[][] itemNames = Brain.data.getItems( container );
+		String[][] itemNames = Brain.data.getItems( name );
 
 		for( String[] i : itemNames ) {
 			double distance = ldc.optimalComparison( query, i );

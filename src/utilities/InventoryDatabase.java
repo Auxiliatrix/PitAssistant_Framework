@@ -173,6 +173,11 @@ public class InventoryDatabase {
 
 	/* CREATE DATABASE */
 
+	/**
+	 * Builds the database in the file.
+	 * It is reccomended to check if the database has already been created, first.
+	 * @return If the operation was successful
+	 */
 	public boolean init() {
 		// Adds required tables and columns to the database
 		try {
@@ -221,6 +226,12 @@ public class InventoryDatabase {
 	/* QUERY DATABASE */
 
 	// Check if entry name exists
+	
+	/**
+	 * Checks if the given item is stored in the database
+	 * @param team The item to check for existance
+	 * @return Whether the given item exists
+	 */
 	public boolean itemExists( String item ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM item WHERE id = " + getItemID( item ) + ";");
@@ -232,6 +243,11 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Checks if the given container is stored in the database
+	 * @param team The container to check for existance
+	 * @return Whether the given container exists
+	 */
 	public boolean containerExists( String container ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM container WHERE id = " + getContainerID( container ) + ";");			
@@ -243,6 +259,11 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Checks if the given inventory is stored in the database
+	 * @param team The inventory to check for existance
+	 * @return Whether the given inventory exists
+	 */
 	public boolean inventoryExists( String inventory ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
@@ -254,6 +275,11 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Checks if the given team name is stored in the database
+	 * @param team The team name to check for existance
+	 * @return Whether the given team name exists
+	 */
 	public boolean teamExists( String team ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + getTeamID( team ) + ";");
@@ -265,6 +291,11 @@ public class InventoryDatabase {
 		}
 	}
 
+	/**
+	 * Checks if the given team id is stored in the database
+	 * @param team The team id to check for existance
+	 * @return Whether the given team id exists
+	 */
 	public boolean teamExists( long team ) {
 		try {
 			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + team + ";");
@@ -277,6 +308,11 @@ public class InventoryDatabase {
 	}
 
 	/* Get all subvalues of database */
+	
+	/**
+	 * Gets every inventory in the database
+	 * @return A String array of every inventory name
+	 */
 	public String[] getAllInventories() {
 		List<String> result = new ArrayList<String>();
 		ResultSet rs;
@@ -294,6 +330,10 @@ public class InventoryDatabase {
 		return result.toArray( new String[ result.size() ] );
 	}
 
+	/**
+	 * Gets every container in the database
+	 * @return A String array of every container name
+	 */
 	public String[] getAllContainters() {
 		List<String> result = new ArrayList<String>();
 		ResultSet rs;
@@ -311,6 +351,10 @@ public class InventoryDatabase {
 		return result.toArray( new String[ result.size() ] );
 	}
 
+	/**
+	 * Gets every item within the database
+	 * @return A 2D String array, with every name of each item included
+	 */
 	public String[][] getAllItems() {
 		List<List<String>> result = new ArrayList<List<String>>();
 		ResultSet rs;
@@ -336,6 +380,11 @@ public class InventoryDatabase {
 		return toArray( result );
 	}
 
+	/**
+	 * Gets all the containers contained within the inventory
+	 * @param container The name of the inventory to list
+	 * @return A 2D String array, with all of the names of each container
+	 */
 	public String[] getContainters( String inventory ) {
 		List<String> result = new ArrayList<String>();
 		ResultSet rs;
@@ -353,6 +402,11 @@ public class InventoryDatabase {
 		return result.toArray( new String[ result.size() ] );
 	}
 
+	/**
+	 * Gets all the items contained within the container
+	 * @param container The name of the container to list
+	 * @return A 2D String array, with all of the names of each object
+	 */
 	public String[][] getItems( String container ) {
 		List<List<String>> result = new ArrayList<List<String>>();
 
@@ -381,6 +435,12 @@ public class InventoryDatabase {
 	}
 
 	/* Get all names for the items */
+	
+	/**
+	 * Retrieves all of the names of the given item
+	 * @param name Name of the item to get names for
+	 * @return A String array containing all of the names of the given item
+	 */
 	public String[] getItemNames( String name ) {
 		List<String> names = new ArrayList<String>();
 
@@ -402,6 +462,12 @@ public class InventoryDatabase {
 	}
 
 	/* Get all info about the thing */
+	
+	/**
+	 * Retrieves all the values of the given inventory.
+	 * @param inventory The inventory to retrieve values of
+	 * @return A map where the column names are keys, and the values are stored
+	 */
 	public Map<String, Object> getInventory( String inventory ) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
@@ -421,6 +487,11 @@ public class InventoryDatabase {
 		return result;
 	}
 
+	/**
+	 * Retrieves all the values of the given container.
+	 * @param container The container to retrieve values of
+	 * @return A map where the column names are keys, and the values are stored
+	 */
 	public Map<String, Object> getContainer( String container ){
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
@@ -440,6 +511,13 @@ public class InventoryDatabase {
 		return result;
 	}
 
+	/**
+	 * Retrieves all the values of the given item.
+	 * Does not retrieve all names.
+	 * This is a known issue.
+	 * @param item The item to retrieve values of
+	 * @return A map where the column names are keys, and the values are stored
+	 */
 	public Map<String, Object> getItem( String item ){ // Does not play well with aliases
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
@@ -460,6 +538,12 @@ public class InventoryDatabase {
 	}
 
 	/* Get who owns the object */
+	
+	/**
+	 * Gets the team number that owns the given inventory
+	 * @param inventory Name of the inventory to query
+	 * @return Team number of the owner of the inventory
+	 */
 	public String getInventoryOwner( String inventory ) {
 		String owner = "";
 		ResultSet rs;
@@ -475,6 +559,11 @@ public class InventoryDatabase {
 		return owner;
 	}
 
+	/**
+	 * Gets the team number that owns the given container
+	 * @param container Name of the container to query
+	 * @return Team number of the owner of the container
+	 */
 	public String getContainerOwner( String container ) {
 		String owner = "";
 		ResultSet rs;
@@ -490,6 +579,11 @@ public class InventoryDatabase {
 		return owner;
 	}
 
+	/**
+	 * Gets the team number that owns the given item
+	 * @param item Name of the item to query
+	 * @return Team number of the owner of the item
+	 */
 	public String getItemOwner( String item ) {
 		String owner = "";
 		ResultSet rs;
@@ -506,6 +600,12 @@ public class InventoryDatabase {
 	}
 
 	/* Get where the object is */
+	
+	/**
+	 * Retrieve the current inventory of the given container.
+	 * @param item The name of the container to get the inventory location of
+	 * @return The current inventory location of the given container
+	 */
 	public String getContainerLocation( String container ) {
 		String location = "";
 		ResultSet rs;
@@ -521,6 +621,12 @@ public class InventoryDatabase {
 		return location;
 	}
 
+	/**
+	 * Retrieve the current container of the given item.
+	 * This does not represent the origin container of the item.
+	 * @param item The name of the item to get the container of
+	 * @return The current container of the given item
+	 */
 	public String getItemLocation( String item ) {
 		String location = "";
 		ResultSet rs;
@@ -540,6 +646,12 @@ public class InventoryDatabase {
 		return location;
 	}
 	
+	/**
+	 * Retrieve the origin container of the given item.
+	 * This does not represent the current location of the item.
+	 * @param item The name of the item to get the origin container of
+	 * @return The origin container of the given item
+	 */
 	public String getItemOriginLocation( String item ) {
 		String location = "";
 		ResultSet rs;
@@ -560,6 +672,12 @@ public class InventoryDatabase {
 	}
 
 	/* Get last edit time */
+	
+	/**
+	 * Retrieves the most recent time that the given inventory was altered
+	 * @param inventory The inventory name to fetch the time of
+	 * @return The last modified time of the given inventory
+	 */
 	public long getInventoryTime( String inventory ) {
 		long location = -1;
 		ResultSet rs;
@@ -575,6 +693,11 @@ public class InventoryDatabase {
 		return location;
 	}
 
+	/**
+	 * Retrieves the most recent time that the given container was altered
+	 * @param container The container name to fetch the time of
+	 * @return The last modified time of the given container
+	 */
 	public long getContainerTime( String container ) {
 		long location = -1;
 		ResultSet rs;
@@ -590,6 +713,11 @@ public class InventoryDatabase {
 		return location;
 	}
 
+	/**
+	 * Retrieves the most recent time that the given item was altered
+	 * @param item The item name to fetch the time of
+	 * @return The last modified time of the given item
+	 */
 	public long getItemTime( String item ) {
 		long location = -1;
 		ResultSet rs;

@@ -2,6 +2,7 @@ package utilities;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -20,6 +21,7 @@ public class InventoryDatabase {
 
 	private Connection connection = null;
 	private Statement statement = null;
+	private PreparedStatement prep = null;
 	private long defaultTeam;
 	private long defaultInventory;
 	private long defaultContainer;

@@ -186,7 +186,7 @@ public class InventoryDatabase {
 
 			/* Create nessessary tables */
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS team ( id integer NOT NULL, name text NOT NULL, "
-					+ "team integer NOT NULL, time integer NOT NULL );" );
+					+ "time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS inventory ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
 					+ "team integer NOT NULL, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "

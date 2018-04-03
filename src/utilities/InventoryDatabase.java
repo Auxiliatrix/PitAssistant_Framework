@@ -87,7 +87,7 @@ public class InventoryDatabase {
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
-			
+
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='itemname';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
@@ -109,7 +109,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	/**
 	 * Copies the loaded database to the location specified in the configuration
 	 * @return boolean Whether the operation was successful, or threw an error
@@ -202,18 +202,21 @@ public class InventoryDatabase {
 			ResultSet rs;
 			statement.executeUpdate("INSERT INTO team ( id , name, time ) VALUES ( -1, 'default', " + getTime() + ");"); // Create default team
 			rs = statement.executeQuery("SELECT id FROM team WHERE name = 'default';");
-			rs.next();
-			defaultTeam = rs.getLong("id"); // ID of default team
+			if( rs.next() ) {
+				defaultTeam = rs.getLong("id"); // ID of default team
+			}
 
 			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES ('default', " + defaultTeam + ", " + getTime() + ");"); // Create default inventory
 			rs = statement.executeQuery("SELECT id FROM inventory WHERE name = 'default';"); // Get the id of the default inventory
-			rs.next();
-			defaultInventory = rs.getLong("id");
+			if( rs.next() ) {
+				defaultInventory = rs.getLong("id");
+			}
 
 			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES ('default', " + defaultInventory + ", " + defaultTeam + ", " + getTime() + ");"); // Create default container
 			rs = statement.executeQuery("SELECT id FROM container WHERE name = 'default';"); // Get the id of the default container
-			rs.next();
-			defaultContainer = rs.getLong("id");
+			if( rs.next() ) {
+				defaultContainer = rs.getLong("id");
+			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -226,7 +229,7 @@ public class InventoryDatabase {
 	/* QUERY DATABASE */
 
 	// Check if entry name exists
-	
+
 	/**
 	 * Checks if the given item is stored in the database
 	 * @param team The item to check for existance
@@ -308,7 +311,7 @@ public class InventoryDatabase {
 	}
 
 	/* Get all subvalues of database */
-	
+
 	/**
 	 * Gets every inventory in the database
 	 * @return A String array of every inventory name
@@ -361,16 +364,16 @@ public class InventoryDatabase {
 
 		try {
 			rs =  statement.executeQuery("SELECT id FROM item;");
-			
+
 			int index = 0;
 			while( rs.next() ) {
 				result.set( index, new ArrayList<String>() );
 				ResultSet rs2 = statement.executeQuery("SELECT name FROM itemname WHERE id = " + rs.getLong("id") + ";");
-				
+
 				while( rs2.next() ) {
 					result.get(index).add( rs2.getString("name") );
 				}
-				
+
 				index++;
 			}
 		} catch (SQLException e) {
@@ -435,7 +438,7 @@ public class InventoryDatabase {
 	}
 
 	/* Get all names for the items */
-	
+
 	/**
 	 * Retrieves all of the names of the given item
 	 * @param name Name of the item to get names for
@@ -445,9 +448,11 @@ public class InventoryDatabase {
 		List<String> names = new ArrayList<String>();
 
 		try {
+			long id = -1;
 			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + name + "';");
-			rs.next();
-			long id = rs.getLong("id");
+			if( rs.next() ) {
+				id = rs.getLong("id");
+			}
 
 			rs = statement.executeQuery("SELECT name FROM itemname WHERE id = " + id + ";");
 			while( rs.next() ) {
@@ -462,7 +467,7 @@ public class InventoryDatabase {
 	}
 
 	/* Get all info about the thing */
-	
+
 	/**
 	 * Retrieves all the values of the given inventory.
 	 * @param inventory The inventory to retrieve values of
@@ -538,7 +543,7 @@ public class InventoryDatabase {
 	}
 
 	/* Get who owns the object */
-	
+
 	/**
 	 * Gets the team number that owns the given inventory
 	 * @param inventory Name of the inventory to query
@@ -550,8 +555,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT team FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
-			rs.next();
-			owner = rs.getString("team");
+			if( rs.next() ) {
+				owner = rs.getString("team");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -570,8 +576,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT team FROM container WHERE id = " + getContainerID( container ) + ";");
-			rs.next();
-			owner = rs.getString("team");
+			if( rs.next() ) {
+				owner = rs.getString("team");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -590,8 +597,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT team FROM item WHERE id = " + getid( item ) + ";");
-			rs.next();
-			owner = rs.getString("team");
+			if( rs.next() ) {
+				owner = rs.getString("team");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -600,7 +608,7 @@ public class InventoryDatabase {
 	}
 
 	/* Get where the object is */
-	
+
 	/**
 	 * Retrieve the current inventory of the given container.
 	 * @param item The name of the container to get the inventory location of
@@ -612,8 +620,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT inventory FROM container WHERE id = " + getContainerID( container ) + ";");
-			rs.next();
-			location = rs.getString("inventory");
+			if( rs.next() ) {
+				location = rs.getString("inventory");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -632,20 +641,23 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
+			long locationID = -1;
 			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getid( item ) + ";");
-			rs.next();
-			long locationID = rs.getLong("origincontainer");
-			
+			if( rs.next() ) {
+				locationID = rs.getLong("origincontainer");
+			}
+
 			ResultSet rs2 = statement.executeQuery("SELECT name FROM container WHERE id = " + locationID + ";");
-			rs2.next();
-			location = rs2.getString("name");
+			if( rs2.next() ) {
+				location = rs2.getString("name");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
 
 		return location;
 	}
-	
+
 	/**
 	 * Retrieve the origin container of the given item.
 	 * This does not represent the current location of the item.
@@ -657,13 +669,16 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
+			long locationID = -1;
 			rs = statement.executeQuery("SELECT origincontainer FROM item WHERE id = " + getid( item ) + ";");
-			rs.next();
-			long locationID = rs.getLong("origincontainer");
-			
+			if( rs.next() ) {
+				locationID = rs.getLong("origincontainer");
+			}
+
 			ResultSet rs2 = statement.executeQuery("SELECT name FROM container WHERE id = " + locationID + ";");
-			rs2.next();
-			location = rs2.getString("name");
+			if( rs2.next() ) {
+				location = rs2.getString("name");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -672,7 +687,7 @@ public class InventoryDatabase {
 	}
 
 	/* Get last edit time */
-	
+
 	/**
 	 * Retrieves the most recent time that the given inventory was altered
 	 * @param inventory The inventory name to fetch the time of
@@ -684,8 +699,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT time FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
-			rs.next();
-			location = rs.getLong("time");
+			if( rs.next() ) {
+				location = rs.getLong("time");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -704,8 +720,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT time FROM container WHERE id = " + getContainerID( container ) + ";");
-			rs.next();
-			location = rs.getLong("time");
+			if( rs.next() ) {
+				location = rs.getLong("time");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -724,8 +741,9 @@ public class InventoryDatabase {
 
 		try {
 			rs = statement.executeQuery("SELECT time FROM item WHERE id = " + getid( item ) + ";");
-			rs.next();
-			location = rs.getLong("time");
+			if( rs.next() ) {
+				location = rs.getLong("time");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -787,7 +805,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	/**
 	 * Sets the given item's original container to be equal to the given container.
 	 * The original container should be condsidered the proper place for the item, when stored properly.
@@ -803,14 +821,14 @@ public class InventoryDatabase {
 		} else if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		try {
 			statement.executeUpdate("UPDATE item SET origincontainer = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
 		}
-		
+
 		return true;
 	}
 
@@ -885,7 +903,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	/**
 	 * Changes the owner of the given item to the team id given
 	 * @param inventory The item name of the entry to alter
@@ -957,7 +975,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	/**
 	 * Removes the name given from the item it corresponds to.
 	 * Beware that if you remove the only remaining name from the item, it will become impossible to refrence the item
@@ -993,9 +1011,11 @@ public class InventoryDatabase {
 		}
 
 		try {
+			long rowID = -1;
 			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + oldName + "';");
-			rs.next();
-			long rowID = rs.getLong("id");
+			if( rs.next() ) {
+				rowID = rs.getLong("id");
+			}
 
 			statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", " + newName + ";");
 		} catch (SQLException e) {
@@ -1019,9 +1039,11 @@ public class InventoryDatabase {
 		}
 
 		try {
+			long rowID = -1;
 			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + oldName + "';");
-			rs.next();
-			long rowID = rs.getLong("id");
+			if( rs.next() ) {
+				rowID = rs.getLong("id");
+			}
 
 			for( String i : newName ) {
 				statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", " + i + ";");
@@ -1033,7 +1055,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	public boolean addItemName( String oldName, List<String> newName ) throws EntryNotExistException {
 		return addItemName( oldName, newName.toArray( new String[ newName.size() ] ) );
 	}
@@ -1223,7 +1245,7 @@ public class InventoryDatabase {
 	public void newItem( String[] names, String container, String team ) {
 		newItem( names, container, container, team );
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param name The name of the item
@@ -1233,11 +1255,13 @@ public class InventoryDatabase {
 	 */
 	public void newItem( String name, String container, String originContainer, String team ) {
 		try {
+			long rowID = -1;
 			long time = getTime();
 			statement.executeUpdate("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
 			ResultSet rs = statement.executeQuery("SELECT id FROM item WHERE container = " + container + ", team = " + team + "', time = " + time + ";" );
-			rs.next();
-			long rowID = rs.getLong("id");
+			if( rs.next() ) {
+				rowID = rs.getLong("id");
+			}
 			statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", '" + name + "';");
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1260,8 +1284,9 @@ public class InventoryDatabase {
 			statement.executeUpdate("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
 
 			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + getContainerID(container) + ", origincontainer = " + getContainerID(originContainer) + ", team = " + team + "', time = " + time + ";" );
-			rs.next();
-			rowID = rs.getLong("id");
+			if( rs.next() ) {
+				rowID = rs.getLong("id");
+			}
 
 			for( String name : names ) {
 				statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", '" + name + "';");
@@ -1270,7 +1295,7 @@ public class InventoryDatabase {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Creates a new team entry
 	 * @param name String representing the team name
@@ -1295,8 +1320,9 @@ public class InventoryDatabase {
 
 		try {
 			ResultSet rs = statement.executeQuery("SELECT id FROM inventory WHERE name = '" + inventory + "';");
-			rs.next();
-			id = rs.getLong("id");
+			if( rs.next() ) {
+				id = rs.getLong("id");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -1309,8 +1335,9 @@ public class InventoryDatabase {
 
 		try {
 			ResultSet rs = statement.executeQuery("SELECT id FROM container WHERE name = '" + container + "';");
-			rs.next();
-			id = rs.getLong("id");
+			if( rs.next() ) {
+				id = rs.getLong("id");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -1327,8 +1354,9 @@ public class InventoryDatabase {
 
 		try {
 			ResultSet rs = statement.executeQuery("SELECT id FROM team WHERE name = '" + team + "';");
-			rs.next();
-			id = rs.getLong("id");
+			if( rs.next() ) {
+				id = rs.getLong("id");
+			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
@@ -1340,8 +1368,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 		try {
 			rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + item + "';");
-			rs.next();
-			return rs.getLong("id");
+			if( rs.next() ) {
+				return rs.getLong("id");
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1355,7 +1384,7 @@ public class InventoryDatabase {
 				size = l.size();
 			}
 		}
-		
+
 		String[][] result = new String[ list.size() ][ size ];
 
 		int index = 0;

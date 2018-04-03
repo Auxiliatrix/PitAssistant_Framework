@@ -196,7 +196,7 @@ public class InventoryDatabase {
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, name integer NOT NULL, "
 					+ "container integer NOT NULL, owner integer NOT NULL, origincontainer integer, time integer NOT NULL, "
 					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id), "
-					+ "FOREIGN KEY (name) REFRENCES itemname(id) );" );
+					+ "FOREIGN KEY (name) REFERENCES itemname(id) );" );
 
 			/* Add default values to tables */
 			ResultSet rs;

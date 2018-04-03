@@ -3,6 +3,7 @@
 
 # Save file
 .save
+*.db
 
 # Log file
 *.log

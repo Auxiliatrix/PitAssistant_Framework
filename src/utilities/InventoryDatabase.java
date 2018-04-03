@@ -193,14 +193,14 @@ public class InventoryDatabase {
 					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL);" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text NOT NULL, "
 					+ "time integer NOT NULL);" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL,"
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, name integer NOT NULL, "
 					+ "container integer NOT NULL, owner integer NOT NULL, origincontainer integer, time integer NOT NULL, "
-					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id),"
-					+ "FOREIGN KEY (name) REFRENCES itemname(id);" );
+					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id), "
+					+ "FOREIGN KEY (name) REFRENCES itemname(id) );" );
 
 			/* Add default values to tables */
 			ResultSet rs;
-			statement.executeUpdate("INSERT INTO team ( name, time ) VALUES ('default', " + getTime() + ");"); // Create default team
+			statement.executeUpdate("INSERT INTO team ( id , name, time ) VALUES ( -1, 'default', " + getTime() + ");"); // Create default team
 			rs = statement.executeQuery("SELECT id FROM team WHERE name = 'default';");
 			rs.next();
 			defaultTeam = rs.getLong("id"); // ID of default team
@@ -234,7 +234,7 @@ public class InventoryDatabase {
 	 */
 	public boolean itemExists( String item ) {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT count(*) FROM item WHERE id = " + getItemID( item ) + ";");
+			ResultSet rs = statement.executeQuery("SELECT count(*) FROM item WHERE id = " + getid( item ) + ";");
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -523,7 +523,7 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs =  statement.executeQuery("SELECT * FROM item WHERE id = " + getItemID( item ) + ";");
+			rs =  statement.executeQuery("SELECT * FROM item WHERE id = " + getid( item ) + ";");
 			int colCount = rs.getMetaData().getColumnCount();
 			while( rs.next() ) {
 				for( int i = 0; i <= colCount; i++ ) {
@@ -589,7 +589,7 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT team FROM item WHERE id = " + getItemID( item ) + ";");
+			rs = statement.executeQuery("SELECT team FROM item WHERE id = " + getid( item ) + ";");
 			rs.next();
 			owner = rs.getString("team");
 		} catch( SQLException e ) {
@@ -632,7 +632,7 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getItemID( item ) + ";");
+			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getid( item ) + ";");
 			rs.next();
 			long locationID = rs.getLong("origincontainer");
 			
@@ -657,7 +657,7 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT origincontainer FROM item WHERE id = " + getItemID( item ) + ";");
+			rs = statement.executeQuery("SELECT origincontainer FROM item WHERE id = " + getid( item ) + ";");
 			rs.next();
 			long locationID = rs.getLong("origincontainer");
 			
@@ -723,7 +723,7 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT time FROM item WHERE id = " + getItemID( item ) + ";");
+			rs = statement.executeQuery("SELECT time FROM item WHERE id = " + getid( item ) + ";");
 			rs.next();
 			location = rs.getLong("time");
 		} catch( SQLException e ) {
@@ -778,7 +778,7 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -805,7 +805,7 @@ public class InventoryDatabase {
 		}
 		
 		try {
-			statement.executeUpdate("UPDATE item SET origincontainer = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET origincontainer = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -829,7 +829,7 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -901,7 +901,7 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + team + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET team = " + team + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1088,7 +1088,7 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1124,7 +1124,7 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getItemID(item) + ";");
+			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1318,7 +1318,7 @@ public class InventoryDatabase {
 		return id;
 	}
 
-	private long getItemID( String item ) {
+	private long getid( String item ) {
 		return getItemNameID( item ); // The item name database uses the item id as the key
 	}
 

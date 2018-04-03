@@ -64,12 +64,12 @@ public class Brain {
 	}
 
 	public static void init() {
-		loader.load(Calibration.FILE_NAME);
-
 		// Load database
-		if( !data.isInitialized() ) {
+		//if( !data.isInitialized() ) {
 			data.init();
-		}
+		//}
+		
+		loader.load(Calibration.FILE_NAME);
 
 		loadInvokers();
 	}

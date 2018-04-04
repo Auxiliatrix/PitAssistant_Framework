@@ -305,7 +305,7 @@ public class InventoryDatabase {
 		try {
 			prep = connection.prepareStatement("SELECT count(*) FROM team WHERE id = ?;");
 			prep.setLong(1, getTeamID( team ));
-			ResultSet rs = statement.executeQuery();
+			ResultSet rs = prep.executeQuery();
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {

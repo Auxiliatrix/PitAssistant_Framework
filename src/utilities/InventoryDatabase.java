@@ -188,18 +188,20 @@ public class InventoryDatabase {
 			statement.executeUpdate( "PRAGMA foreign_keys = ON ;" );
 
 			/* Create nessessary tables */
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS team ( id integer NOT NULL, name text NOT NULL, "
-					+ "time integer NOT NULL );" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS inventory ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
-					+ "team integer NOT NULL, time integer NOT NULL );" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text NOT NULL, "
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS team ( id integer UNIQUE NOT NULL, name text UNIQUE NOT NULL, "
+					+ "time integer);" );
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS inventory ( id integer PRIMARY KEY NOT NULL, name text UNIQUE NOT NULL, "
+					+ "team integer NOT NULL DEFAULT -1, time integer NOT NULL );" );
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text UNIQUE NOT NULL, "
 					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL);" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text NOT NULL, "
-					+ "time integer NOT NULL);" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, name integer NOT NULL, "
-					+ "container integer NOT NULL, owner integer NOT NULL, origincontainer integer, time integer NOT NULL, "
-					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (owner) REFERENCES team(id), "
-					+ "FOREIGN KEY (name) REFERENCES itemname(id) );" );
+			
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, "
+					+ "container integer NOT NULL, team integer NOT NULL DEFAULT -1, origincontainer integer, count integer NOT NULL DEFAULT 1, "
+					+ "time integer, "
+					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (team) REFERENCES team(id) );" );
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text NOT NULL DEFAULT 'default', "
+					+ "time integer NOT NULL DEFAULT -1,"
+					+ "FOREIGN KEY (id) REFERENCES item(id) );" );
 
 			/* Add default values to tables */
 			ResultSet rs;
@@ -383,6 +385,7 @@ public class InventoryDatabase {
 	public String[][] getAllItems() {
 		List<List<String>> result = new ArrayList<List<String>>();
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			rs =  statement.executeQuery("SELECT id FROM item;");
@@ -415,6 +418,7 @@ public class InventoryDatabase {
 	public String[] getContainters( String inventory ) {
 		List<String> result = new ArrayList<String>();
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT name FROM container WHERE inventory = ?;");
@@ -438,6 +442,7 @@ public class InventoryDatabase {
 	 */
 	public String[][] getItems( String container ) {
 		List<List<String>> result = new ArrayList<List<String>>();
+		PreparedStatement prep;
 
 		try {
 			ResultSet rs;
@@ -476,6 +481,7 @@ public class InventoryDatabase {
 	 */
 	public String[] getItemNames( String name ) {
 		List<String> names = new ArrayList<String>();
+		PreparedStatement prep;
 
 		try {
 			long id = -1;
@@ -510,6 +516,7 @@ public class InventoryDatabase {
 	public Map<String, Object> getInventory( String inventory ) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT * FROM inventory WHERE id = ?;");
@@ -536,6 +543,7 @@ public class InventoryDatabase {
 	public Map<String, Object> getContainer( String container ){
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT * FROM container WHERE id = ?;");
@@ -564,6 +572,7 @@ public class InventoryDatabase {
 	public Map<String, Object> getItem( String item ){ // Does not play well with aliases
 		Map<String, Object> result = new HashMap<String, Object>();
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT * FROM item WHERE id = ?;");
@@ -592,6 +601,7 @@ public class InventoryDatabase {
 	public String getInventoryOwner( String inventory ) {
 		String owner = "";
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT team FROM inventory WHERE id = ?;");
@@ -615,6 +625,7 @@ public class InventoryDatabase {
 	public String getContainerOwner( String container ) {
 		String owner = "";
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT team FROM container WHERE id = ?;");
@@ -638,6 +649,7 @@ public class InventoryDatabase {
 	public String getItemOwner( String item ) {
 		String owner = "";
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT team FROM item WHERE id = ?;");
@@ -663,6 +675,7 @@ public class InventoryDatabase {
 	public String getContainerLocation( String container ) {
 		String location = "";
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT inventory FROM container WHERE id = ?;");
@@ -687,6 +700,7 @@ public class InventoryDatabase {
 	public String getItemLocation( String item ) {
 		String location = "";
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			long locationID = -1;
@@ -719,6 +733,7 @@ public class InventoryDatabase {
 	public String getItemOriginLocation( String item ) {
 		String location = "";
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			long locationID = -1;
@@ -752,6 +767,7 @@ public class InventoryDatabase {
 	public long getInventoryTime( String inventory ) {
 		long location = -1;
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT time FROM inventory WHERE id = ?;");
@@ -775,6 +791,7 @@ public class InventoryDatabase {
 	public long getContainerTime( String container ) {
 		long location = -1;
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT time FROM container WHERE id = ?;");
@@ -798,6 +815,7 @@ public class InventoryDatabase {
 	public long getItemTime( String item ) {
 		long location = -1;
 		ResultSet rs;
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("SELECT time FROM item WHERE id = ?;");
@@ -830,6 +848,8 @@ public class InventoryDatabase {
 		} else if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE container SET inventory = ?, time = ? WHERE id = ?;");
@@ -860,9 +880,11 @@ public class InventoryDatabase {
 		} else if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
+		
+		PreparedStatement prep;
 
 		try {
-			prep = connection.prepareStatement("UPDATE item SET container = ?, time = ? WHERE id = ?s;");
+			prep = connection.prepareStatement("UPDATE item SET container = ?, time = ? WHERE id = ?;");
 			prep.setLong(1, getContainerID(container));
 			prep.setLong(2, getTime());
 			prep.setLong(3, getid(item));
@@ -891,6 +913,8 @@ public class InventoryDatabase {
 		} else if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET origincontainer = ?, time = ? WHERE id = ?;");
@@ -919,6 +943,8 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
@@ -947,6 +973,8 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
@@ -975,6 +1003,8 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
@@ -1003,6 +1033,8 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
@@ -1031,6 +1063,8 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
@@ -1059,6 +1093,8 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
@@ -1085,6 +1121,8 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("REMOVE FROM itemname WHERE name = ?;");
@@ -1109,6 +1147,8 @@ public class InventoryDatabase {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			long rowID = -1;
@@ -1143,6 +1183,8 @@ public class InventoryDatabase {
 			throw new EntryNotExistException( oldName );
 		}
 
+		PreparedStatement prep;
+		
 		try {
 			long rowID = -1;
 			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
@@ -1181,6 +1223,8 @@ public class InventoryDatabase {
 		if( !containerExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE container SET name = ? WHERE id = ?;");
@@ -1206,6 +1250,8 @@ public class InventoryDatabase {
 		if( !inventoryExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE inventory SET name = ?, time = ? WHERE id = ?;");
@@ -1225,6 +1271,8 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
@@ -1244,6 +1292,8 @@ public class InventoryDatabase {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE container SET inventory = ?, time = ? WHERE id = ?;");
@@ -1269,6 +1319,8 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
@@ -1294,6 +1346,8 @@ public class InventoryDatabase {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
@@ -1319,6 +1373,8 @@ public class InventoryDatabase {
 		if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
 		}
+		
+		PreparedStatement prep;
 
 		try {
 			prep = connection.prepareStatement("UPDATE inventory SET team = ?, time = ? WHERE id = ?;");
@@ -1339,13 +1395,24 @@ public class InventoryDatabase {
 	/**
 	 * Creates a new inventory entry, for holding containers
 	 * @param name The name of the inventory
-	 * @param team The team tbat owns the inventory
+	 * @param team The team that owns the inventory
 	 */
 	public void newInventory( String name, String team ) {
+		newInventory(name, getTeamID(team));
+	}
+	
+	/**
+	 * Creates a new inventory entry, for holding containers
+	 * @param name The name of the inventory
+	 * @param team The team id that owns the inventory
+	 */
+	public void newInventory( String name, long team ) {
+		PreparedStatement prep;
+		
 		try {
-			prep = connection.prepareStatement("INSERT INTO inventory ( name, team, time ) VALUES ?, ?, ?;");
+			prep = connection.prepareStatement("INSERT INTO inventory ( name, team, time ) VALUES ( ?, ?, ? );");
 			prep.setString(1, name);
-			prep.setLong(2, getTeamID(team));
+			prep.setLong(2, team);
 			prep.setLong(3, getTime());
 			prep.executeUpdate();
 		} catch (SQLException e) {
@@ -1357,16 +1424,30 @@ public class InventoryDatabase {
 	 * Creates a new container entry, for holding items
 	 * @param name The name of the container
 	 * @param inventory The inventory that this container resides within
-	 * @param team The team that owns the container
+	 * @param team The name of the team that owns the container
 	 */
 	public void newContainer( String name, String inventory, String team ) {
+		newContainer( name, inventory, getTeamID(team) );
+	}
+	
+	/**
+	 * Creates a new container entry, for holding items
+	 * @param name The name of the container
+	 * @param inventory The inventory that this container resides within
+	 * @param team The team id that owns the container
+	 */
+	public void newContainer( String name, String inventory, long team ) {
+		PreparedStatement prep;
+		
+		System.out.println(name + " : " + inventory + " : " + team);
 		try {
-			prep = connection.prepareStatement("INSERT INTO container ( name, inventory, team, time ) VALUES ?, ?, ?, ?;");
+			prep = connection.prepareStatement("INSERT INTO container ( name, inventory, team, time ) VALUES ( ?, ?, ?, ? );");
 			prep.setString(1, name);
 			prep.setLong(2, getInventoryID(inventory));
-			prep.setLong(3, getTeamID(team));
+			prep.setLong(3, team);
 			prep.setLong(4, getTime());
-			prep.executeUpdate();
+			prep.execute();
+			prep.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1376,11 +1457,22 @@ public class InventoryDatabase {
 	 * Creates a new item entry, where the conainer and origin container values are the same
 	 * @param name The name of the item
 	 * @param container The container the item resides within, same as the origin container
-	 * @param team The team that owns the item
+	 * @param team The name of the team that owns the item
 	 */
 	public void newItem( String name, String container, String team ) {
 		newItem( name, container, container, team );
 	}
+	
+	/**
+	 * Creates a new item entry, where the conainer and origin container values are the same
+	 * @param name The name of the item
+	 * @param container The container the item resides within, same as the origin container
+	 * @param team The id of the team that owns the item
+	 */
+	public void newItem( String name, String container, long team ) {
+		newItem( name, container, container, team );
+	}
+
 
 	/**
 	 * Creates a new item entry, where the conainer and origin container values are the same
@@ -1389,7 +1481,7 @@ public class InventoryDatabase {
 	 * @param team The team that owns the item
 	 */
 	public void newItem( String[] names, String container, String team ) {
-		newItem( names, container, container, team );
+		newItem( names, 1, container, container, getTeamID(team) );
 	}
 
 	/**
@@ -1400,32 +1492,18 @@ public class InventoryDatabase {
 	 * @param team The team that owns the item
 	 */
 	public void newItem( String name, String container, String originContainer, String team ) {
-		try {
-			long rowID = -1;
-			long time = getTime();
-			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time ) VALUES ?, ?, ?, ?;");
-			prep.setLong(1, getContainerID(container));
-			prep.setLong(2, getContainerID(originContainer));
-			prep.setLong(3, getTeamID(team));
-			prep.setLong(4, time);
-			prep.executeUpdate();
-			
-			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?, team = ?, time = ?;");
-			prep.setLong(1, getContainerID(container));
-			prep.setLong(2, getTeamID(team));
-			prep.setLong(3, time);
-			ResultSet rs = prep.executeQuery();
-			if( rs.next() ) {
-				rowID = rs.getLong("id");
-			}
-			
-			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ?, ?;");
-			prep.setLong(1, rowID);
-			prep.setString(2, name);
-			prep.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		newItem( name, 1, container, originContainer, getTeamID(team) );
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param name The name of the item
+	 * @param container The current container the item resides within
+	 * @param originContainer The container the item belongs to
+	 * @param team The id of the team that owns the item
+	 */
+	public void newItem( String name, String container, String originContainer, long team ) {
+		newItem( name, 1, container, originContainer, team );
 	}
 
 	/**
@@ -1436,34 +1514,148 @@ public class InventoryDatabase {
 	 * @param team The team that owns the item
 	 */
 	public void newItem( String[] names, String container, String originContainer, String team ) {
+		newItem(names, 1, container, originContainer, team);
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param names All of the possible names used to refrence the item
+	 * @param count A integer representing the number of duplicate objects in existance
+	 * @param container The current container the item resides within
+	 * @param originContainer The container the item belongs to
+	 * @param team The team that owns the item
+	 */
+	public void newItem( String[] names, long count, String container, String originContainer, String team ) {
+		newItem( names, count, container, originContainer, getTeamID(team) );
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param names All of the possible names used to refrence the item
+	 * @param count A integer representing the number of duplicate objects in existance
+	 * @param container The current container the item resides within, and its proper location
+	 * @param team The team name that owns the item
+	 */
+	public void newItem( String[] names, long count, String container, String team ) {
+		newItem( names, count, container, container, getTeamID(team) );
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param names All of the possible names used to refrence the item
+	 * @param count A integer representing the number of duplicate objects in existance
+	 * @param container The current container the item resides within, and its proper location
+	 * @param team The team id that owns the item
+	 */
+	public void newItem( String[] names, long count, String container, long team ) {
+		newItem( names, count, container, container, team );
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param name The name of the item
+	 * @param count A integer representing the number of duplicate objects in existance
+	 * @param container The current container the item resides within, and its proper location
+	 * @param team The team id that owns the item
+	 */
+	public void newItem( String name, long count, String container, long team ) {
+		newItem( name, count, container, container, team );
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param names All of the possible names used to refrence the item
+	 * @param count A integer representing the number of duplicate objects in existance
+	 * @param container The current container the item resides within
+	 * @param originContainer The container the item belongs to
+	 * @param team The team id that owns the item
+	 */
+	public void newItem( String[] names, long count, String container, String originContainer, long team ) {
+		PreparedStatement prep;
+		
 		try {
 			long rowID = -1;
 			ResultSet rs;
 			long time = getTime();
 
-			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
+			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time, count ) VALUES ( ?, ?, ?, ?, ? );");
 			prep.setLong(1, getContainerID(container));
 			prep.setLong(2, getContainerID(originContainer));
-			prep.setLong(3, getTeamID(team));
-			prep.executeUpdate();
-
-			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?, origincontainer = ?, team = ?, time = " + time + ";");
-			prep.setLong(1, getContainerID(container));
-			prep.setLong(2, getContainerID(originContainer));
-			prep.setLong(3, getTeamID(team));
+			prep.setLong(3, (team));
 			prep.setLong(4, time);
+			prep.setLong(5, count);
+			prep.executeUpdate();
+			prep.close();
+
+			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?, origincontainer = ?, team = ?, time = ?, count = ?;");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getContainerID(originContainer));
+			prep.setLong(3, team);
+			prep.setLong(4, time);
+			prep.setLong(5, count);
 			rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
+			
+			prep.close();
 
 			for( String name : names ) {
 				prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
 				prep.setLong(1, rowID);
 				prep.setString(2, name);
 				prep.executeUpdate();
+				prep.close();
 			}
 		} catch( SQLException e ) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Creates a new item entry
+	 * @param name The name of the item
+	 * @param count The number of the items in existence
+	 * @param container The current container the item resides within
+	 * @param originContainer The container the item belongs to
+	 * @param team The id of the team that owns the item
+	 */
+	public void newItem( String name, long count, String container, String originContainer, long team ) {
+		PreparedStatement prep;
+		
+		try {
+			ResultSet rs = null;
+			long rowID = -1;
+			long time = getTime();
+			
+			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time, count ) VALUES ( ?, ?, ?, ?, ? );");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getContainerID(originContainer));
+			prep.setLong(3, team);
+			prep.setLong(4, time);
+			prep.setLong(5, count);
+			prep.executeUpdate();
+			prep.close();
+			
+			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ? AND origincontainer = ? AND team = ? AND time = ? AND count = ?;");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getContainerID(originContainer));
+			prep.setLong(3, team);
+			prep.setLong(4, time);
+			prep.setLong(5, count);
+			rs = prep.executeQuery();
+			if( rs.next() ) {
+				rowID = rs.getLong("id");
+			}
+			
+			prep.close();
+			
+			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
+			prep.setLong(1, rowID);
+			prep.setString(2, name);
+			prep.executeUpdate();
+			prep.close();
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
@@ -1474,10 +1666,13 @@ public class InventoryDatabase {
 	 * @param id long representing the team number
 	 */
 	public void newTeam( String name, long id ) {
+		PreparedStatement prep;
+		
 		try {
-			prep = connection.prepareStatement("INSERT INTO team ( id, name ) VALUES ( ?, ? );");
+			prep = connection.prepareStatement("INSERT INTO team ( id, name, time ) VALUES ( ?, ?, ? );");
 			prep.setLong(1, id);
 			prep.setString(2, name);
+			prep.setLong(3, getTime());
 			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1491,6 +1686,7 @@ public class InventoryDatabase {
 	}
 
 	private long getInventoryID( String inventory ) { // Should these be public?
+		PreparedStatement prep;
 		long id = -1;
 
 		try {
@@ -1508,6 +1704,7 @@ public class InventoryDatabase {
 	}
 
 	private long getContainerID( String container ) {
+		PreparedStatement prep;
 		long id = -1;
 
 		try {
@@ -1529,6 +1726,7 @@ public class InventoryDatabase {
 	}
 
 	private long getTeamID( String team ) {
+		PreparedStatement prep;
 		long id = -1;
 
 		try {
@@ -1546,6 +1744,7 @@ public class InventoryDatabase {
 	}
 
 	private long getItemNameID( String item ) {
+		PreparedStatement prep;
 		ResultSet rs;
 		try {
 			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");

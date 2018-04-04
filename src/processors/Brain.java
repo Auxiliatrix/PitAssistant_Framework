@@ -63,18 +63,29 @@ public class Brain {
 		}
 	}
 
-	public static void init() {
+	private static void init() {
+		System.out.println("STARTING =========================================================================================");
 		// Load database
-		//if( !data.isInitialized() ) {
+		if( !data.isInitialized() ) {
+			System.out.println("Creating Database File...");
 			data.init();
-		//}
+			System.out.println("Done.");
+
+		}
+		
+		loadStandardData();
 		
 		loader.load(Calibration.FILE_NAME);
 
 		loadInvokers();
 	}
 
-	public static void loadInvokers() {
+	private static void loadInvokers() {
 		// TODO: Add invokers
+	}
+	
+	private static void loadStandardData() { // Later fetch from TBA
+		Brain.data.newInventory("inventory", Calibration.INITIAL_OBJECT_OWNER);
+		Brain.data.newTeam("quixilver", 604); // All lower case, don't want any wierdness right now
 	}
 }

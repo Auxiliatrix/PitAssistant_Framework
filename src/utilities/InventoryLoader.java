@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import constants.Calibration;
-import objects.Container;
-import objects.Item;
 import processors.Brain;
 
 public class InventoryLoader {
@@ -15,11 +13,12 @@ public class InventoryLoader {
 	public void load(String fileName) {
 		String[][] tokenMatrix = convert(fileName);
 		String[] containerDeclarations = tokenMatrix[0];
-		HashMap<Integer, Container> containers = new HashMap<Integer, Container>();
+		HashMap<Integer, String> containers = new HashMap<Integer, String>();
 		for( int f=0; f<containerDeclarations.length; f++ ) {
 			String token = containerDeclarations[f];
 			if( !token.isEmpty() && !token.equalsIgnoreCase("quantity")) {
-				containers.put(f, new Container(token));
+				containers.put(f, token);
+				Brain.data.newContainer(token, "inventory", Calibration.INITIAL_OBJECT_OWNER);
 			}
 		}
 		for( int f=1; f<tokenMatrix.length; f++ ) {
@@ -29,14 +28,9 @@ public class InventoryLoader {
 				if( !item.isEmpty() ) {
 					String quantityString = tokens[g+1];
 					int quantity = quantityString.isEmpty() ? 1 : Integer.parseInt(quantityString);
-					for( int h=0; h<quantity; h++ ) {
-						containers.get(g).addOrigin(new Item(item));
-					}
+					Brain.data.newItem(item, quantity, containers.get(g), Calibration.INITIAL_OBJECT_OWNER);
 				}
 			}
-		}
-		for( Container container : containers.values() ) {
-			Brain.inventory.addOrigin(container);
 		}
 	}
 	

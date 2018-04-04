@@ -11,14 +11,14 @@ import utilities.LevenshteinDistanceCalculator;
 public class Container {
 	
 	public String name;
-	public String originalTeam;
+	public boolean originalTeam;
 	public ArrayList<Item> items;
 	
 	public Container(String name) {
-		this(name, Calibration.TEAM);
+		this(name, false);
 	}
 	
-	public Container(String name, String originalTeam) {
+	public Container(String name, boolean originalTeam) {
 		this.name = name;
 		this.originalTeam = originalTeam;
 		items = new ArrayList<Item>();
@@ -27,10 +27,11 @@ public class Container {
 	public void addOrigin(Item item) {
 		item.originalContainer = this.name;
 		item.originalTeam = this.originalTeam;
-		items.add(item);
+		add(item);
 	}
 	
 	public void add(Item item) {
+		item.currentContainer = this.name;
 		items.add(item);
 	}
 	

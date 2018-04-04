@@ -13,15 +13,13 @@ import utilities.LevenshteinDistanceCalculator;
 public class Inventory {
 	
 	public ArrayList<Container> containers;
-	private String originalTeam;
 	
-	public Inventory(String team) {
+	public Inventory() {
 		containers = new ArrayList<Container>();
-		this.originalTeam = team;
 	}
 	
 	public void addOrigin(Container container) {
-		container.originalTeam = this.originalTeam;
+		container.originalTeam = true;
 		containers.add(container);
 	}
 	
@@ -61,6 +59,17 @@ public class Inventory {
 		}
 	}
 	
+	public ArrayList<ItemPair> searchExacts(String query) {
+		ArrayList<ItemPair> matches = new ArrayList<ItemPair>();
+		for( Container c : containers ) {
+			for( Item i : c.items ) {
+				if( i.name.equalsIgnoreCase(query) ) {
+					matches.add(new ItemPair(i, 0));
+				}
+			}
+		}
+		return matches;
+	}
 	
 	public ArrayList<ContainerPair> containerSearch (String query) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();

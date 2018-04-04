@@ -3,7 +3,7 @@ package constants;
 import java.util.HashMap;
 
 public class Calibration {
-	public static final String FILE_NAME = "inventory.txt";
+	public static final String FILE_NAME = "inventory.csv";
 	public static final String DATEFORMAT = "yyyyMMddhhmm";
 	public static final int DEFAULT_SQL_TIMEOUT = 30;
 	public static final String DATABASE_NAME = "jdbc:sqlite:inventory.db";

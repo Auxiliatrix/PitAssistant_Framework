@@ -45,3 +45,6 @@ Thumbs.db
 # OSX files
 .DS_Store
 /bin1/
+
+# Lock files
+.~lock.*

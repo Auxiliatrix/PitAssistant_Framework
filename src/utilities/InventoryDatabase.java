@@ -166,6 +166,7 @@ public class InventoryDatabase {
 	 */
 	public void close() {
 		try {
+			prep.close();
 			statement.close();
 			connection.close();
 		} catch (SQLException e) {
@@ -202,19 +203,28 @@ public class InventoryDatabase {
 
 			/* Add default values to tables */
 			ResultSet rs;
-			statement.executeUpdate("INSERT INTO team ( id , name, time ) VALUES ( -1, 'default', " + getTime() + ");"); // Create default team
+			prep = connection.prepareStatement("INSERT INTO team ( id , name, time ) VALUES ( -1, 'default', ? );");
+			prep.setLong( 1, getTime() );
+			prep.execute();
 			rs = statement.executeQuery("SELECT id FROM team WHERE name = 'default';");
 			if( rs.next() ) {
 				defaultTeam = rs.getLong("id"); // ID of default team
 			}
 
-			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES ('default', " + defaultTeam + ", " + getTime() + ");"); // Create default inventory
+			prep = connection.prepareStatement("INSERT INTO inventory ( name, team, time ) VALUES ( 'default', ?, ? );"); // Create default inventory
+			prep.setLong( 1, defaultTeam );
+			prep.setLong( 2, getTime() );
+			prep.execute();
 			rs = statement.executeQuery("SELECT id FROM inventory WHERE name = 'default';"); // Get the id of the default inventory
 			if( rs.next() ) {
 				defaultInventory = rs.getLong("id");
 			}
 
-			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES ('default', " + defaultInventory + ", " + defaultTeam + ", " + getTime() + ");"); // Create default container
+			prep = connection.prepareStatement("INSERT INTO container ( name, inventory, team, time ) VALUES ( 'default', ?, ?, ? );"); // Create default container
+			prep.setLong( 1, defaultInventory );
+			prep.setLong( 2, defaultTeam );
+			prep.setLong( 3, getTime() );
+			prep.execute();
 			rs = statement.executeQuery("SELECT id FROM container WHERE name = 'default';"); // Get the id of the default container
 			if( rs.next() ) {
 				defaultContainer = rs.getLong("id");
@@ -239,7 +249,9 @@ public class InventoryDatabase {
 	 */
 	public boolean itemExists( String item ) {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT count(*) FROM item WHERE id = " + getid( item ) + ";");
+			prep = connection.prepareStatement("SELECT count(*) FROM item WHERE id = ?;");
+			prep.setLong( 1, getid(item) );
+			ResultSet rs = prep.executeQuery();
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -255,7 +267,9 @@ public class InventoryDatabase {
 	 */
 	public boolean containerExists( String container ) {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT count(*) FROM container WHERE id = " + getContainerID( container ) + ";");			
+			prep = connection.prepareStatement("SELECT count(*) FROM container WHERE id = ?;");
+			prep.setLong(1, getContainerID(container));
+			ResultSet rs = prep.executeQuery();		
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -271,7 +285,9 @@ public class InventoryDatabase {
 	 */
 	public boolean inventoryExists( String inventory ) {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT count(*) FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			prep = connection.prepareStatement("SELECT count(*) FROM inventory WHERE id = ?;");
+			prep.setLong(1, getInventoryID(inventory));
+			ResultSet rs = prep.executeQuery();
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -287,7 +303,9 @@ public class InventoryDatabase {
 	 */
 	public boolean teamExists( String team ) {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + getTeamID( team ) + ";");
+			prep = connection.prepareStatement("SELECT count(*) FROM team WHERE id = ?;");
+			prep.setLong(1, getTeamID( team ));
+			ResultSet rs = statement.executeQuery();
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -303,7 +321,9 @@ public class InventoryDatabase {
 	 */
 	public boolean teamExists( long team ) {
 		try {
-			ResultSet rs = statement.executeQuery("SELECT count(*) FROM team WHERE id = " + team + ";");
+			prep = connection.prepareStatement("SELECT count(*) FROM team WHERE id = ?;");
+			prep.setLong(1, team);
+			ResultSet rs = prep.executeQuery();
 			return (rs.getMetaData().getColumnCount() == 0 ? true : false );
 
 		} catch (SQLException e) {
@@ -370,7 +390,9 @@ public class InventoryDatabase {
 			int index = 0;
 			while( rs.next() ) {
 				result.set( index, new ArrayList<String>() );
-				ResultSet rs2 = statement.executeQuery("SELECT name FROM itemname WHERE id = " + rs.getLong("id") + ";");
+				prep = connection.prepareStatement("SELECT name FROM itemname WHERE id = ?;");
+				prep.setLong(1, rs.getLong("id"));
+				ResultSet rs2 = prep.executeQuery();
 
 				while( rs2.next() ) {
 					result.get(index).add( rs2.getString("name") );
@@ -395,7 +417,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs =  statement.executeQuery("SELECT name FROM container WHERE inventory = " + getInventoryID( inventory ) + ";");
+			prep = connection.prepareStatement("SELECT name FROM container WHERE inventory = ?;");
+			prep.setLong(1, getInventoryID( inventory ));
+			rs =  prep.executeQuery();
 
 			while( rs.next() ) {
 				result.add( rs.getString("name") );
@@ -417,7 +441,9 @@ public class InventoryDatabase {
 
 		try {
 			ResultSet rs;
-			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + getContainerID(container) + ";");
+			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?;");
+			prep.setLong(1, getContainerID(container));
+			rs = prep.executeQuery();
 
 			int index = 0;
 			while( rs.next() ) {
@@ -425,7 +451,9 @@ public class InventoryDatabase {
 				long id = rs.getLong("id");
 
 				ResultSet rs2;
-				rs2 = statement.executeQuery("SELECT name FROM itemname WHERE id = " + id + ";");
+				prep = connection.prepareStatement("SELECT name FROM itemname WHERE id = ?;");
+				prep.setLong(1, id);
+				rs2 = prep.executeQuery();
 				while( rs2.next() ) {
 					result.get(index).add( rs2.getString("name") );
 				}
@@ -451,12 +479,16 @@ public class InventoryDatabase {
 
 		try {
 			long id = -1;
-			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + name + "';");
+			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
+			prep.setString(1, name);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				id = rs.getLong("id");
 			}
 
-			rs = statement.executeQuery("SELECT name FROM itemname WHERE id = " + id + ";");
+			prep = connection.prepareStatement("SELECT name FROM itemname WHERE id = ?;");
+			prep.setLong(1, id);
+			rs = prep.executeQuery();
 			while( rs.next() ) {
 				names.add( rs.getString("name") );
 			}
@@ -480,7 +512,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs =  statement.executeQuery("SELECT * FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			prep = connection.prepareStatement("SELECT * FROM inventory WHERE id = ?;");
+			prep.setLong(1, getInventoryID( inventory ));
+			rs =  prep.executeQuery();
 			int colCount = rs.getMetaData().getColumnCount();
 			while( rs.next() ) {
 				for( int i = 0; i <= colCount; i++ ) {
@@ -504,7 +538,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs =  statement.executeQuery("SELECT * FROM container WHERE id = " + getContainerID( container ) + ";");
+			prep = connection.prepareStatement("SELECT * FROM container WHERE id = ?;");
+			prep.setLong(1, getContainerID( container ));
+			rs =  prep.executeQuery();
 			int colCount = rs.getMetaData().getColumnCount();
 			while( rs.next() ) {
 				for( int i = 0; i <= colCount; i++ ) {
@@ -530,7 +566,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs =  statement.executeQuery("SELECT * FROM item WHERE id = " + getid( item ) + ";");
+			prep = connection.prepareStatement("SELECT * FROM item WHERE id = ?;");
+			prep.setLong(1, getid( item ));
+			rs =  prep.executeQuery();
 			int colCount = rs.getMetaData().getColumnCount();
 			while( rs.next() ) {
 				for( int i = 0; i <= colCount; i++ ) {
@@ -556,7 +594,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT team FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			prep = connection.prepareStatement("SELECT team FROM inventory WHERE id = ?;");
+			prep.setLong(1, getInventoryID( inventory ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				owner = rs.getString("team");
 			}
@@ -577,7 +617,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT team FROM container WHERE id = " + getContainerID( container ) + ";");
+			prep = connection.prepareStatement("SELECT team FROM container WHERE id = ?;");
+			prep.setLong(1, getContainerID( container ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				owner = rs.getString("team");
 			}
@@ -598,7 +640,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT team FROM item WHERE id = " + getid( item ) + ";");
+			prep = connection.prepareStatement("SELECT team FROM item WHERE id = ?;");
+			prep.setLong(1, getid( item ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				owner = rs.getString("team");
 			}
@@ -621,7 +665,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT inventory FROM container WHERE id = " + getContainerID( container ) + ";");
+			prep = connection.prepareStatement("SELECT inventory FROM container WHERE id = ?;");
+			prep.setLong(1, getContainerID( container ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				location = rs.getString("inventory");
 			}
@@ -644,12 +690,16 @@ public class InventoryDatabase {
 
 		try {
 			long locationID = -1;
-			rs = statement.executeQuery("SELECT container FROM item WHERE id = " + getid( item ) + ";");
+			prep = connection.prepareStatement("SELECT container FROM item WHERE id = ?;");
+			prep.setLong(1, getid( item ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				locationID = rs.getLong("origincontainer");
 			}
-
-			ResultSet rs2 = statement.executeQuery("SELECT name FROM container WHERE id = " + locationID + ";");
+			
+			prep = connection.prepareStatement("SELECT name FROM container WHERE id = ?;");
+			prep.setLong(1, locationID);
+			ResultSet rs2 = prep.executeQuery();
 			if( rs2.next() ) {
 				location = rs2.getString("name");
 			}
@@ -672,12 +722,16 @@ public class InventoryDatabase {
 
 		try {
 			long locationID = -1;
-			rs = statement.executeQuery("SELECT origincontainer FROM item WHERE id = " + getid( item ) + ";");
+			prep = connection.prepareStatement("SELECT origincontainer FROM item WHERE id = ?;");
+			prep.setLong(1, getid( item ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				locationID = rs.getLong("origincontainer");
 			}
-
-			ResultSet rs2 = statement.executeQuery("SELECT name FROM container WHERE id = " + locationID + ";");
+			
+			prep = connection.prepareStatement("SELECT name FROM container WHERE id = ?;");
+			prep.setLong(1, locationID);
+			ResultSet rs2 = prep.executeQuery();
 			if( rs2.next() ) {
 				location = rs2.getString("name");
 			}
@@ -700,7 +754,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT time FROM inventory WHERE id = " + getInventoryID( inventory ) + ";");
+			prep = connection.prepareStatement("SELECT time FROM inventory WHERE id = ?;");
+			prep.setLong(1, getInventoryID( inventory ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				location = rs.getLong("time");
 			}
@@ -721,7 +777,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT time FROM container WHERE id = " + getContainerID( container ) + ";");
+			prep = connection.prepareStatement("SELECT time FROM container WHERE id = ?;");
+			prep.setLong(1, getContainerID( container ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				location = rs.getLong("time");
 			}
@@ -742,7 +800,9 @@ public class InventoryDatabase {
 		ResultSet rs;
 
 		try {
-			rs = statement.executeQuery("SELECT time FROM item WHERE id = " + getid( item ) + ";");
+			prep = connection.prepareStatement("SELECT time FROM item WHERE id = ?;");
+			prep.setLong(1, getid( item ));
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				location = rs.getLong("time");
 			}
@@ -772,7 +832,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE container SET inventory = " + getInventoryID(inventory) + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
+			prep = connection.prepareStatement("UPDATE container SET inventory = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, getInventoryID(inventory));
+			prep.setLong(2, getTime());
+			prep.setLong(3, getContainerID(container));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -798,7 +862,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET container = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep = connection.prepareStatement("UPDATE item SET container = ?, time = ? WHERE id = ?s;");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getTime());
+			prep.setLong(3, getid(item));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -825,7 +893,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET origincontainer = " + getContainerID(container) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep = connection.prepareStatement("UPDATE item SET origincontainer = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getTime());
+			prep.setLong(3, getid(item));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -849,7 +921,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, getTeamID(team));
+			prep.setLong(2, getTime());
+			prep.setLong(3, getid(item));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -873,7 +949,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE container SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
+			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, getTeamID(team));
+			prep.setLong(2, getTime());
+			prep.setLong(3, getContainerID(container));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -897,7 +977,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + getTeamID(team) + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
+			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, getTeamID(team));
+			prep.setLong(2, getTime());
+			prep.setLong(3, getInventoryID(inventory));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -921,7 +1005,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + team + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, team);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getid(item));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -945,7 +1033,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE container SET team = " + team + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
+			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, team);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getContainerID(container));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -969,7 +1061,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + team + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
+			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, team);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getInventoryID(inventory));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -991,7 +1087,9 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("REMOVE FROM itemname WHERE name = '" + item + "';");
+			prep = connection.prepareStatement("REMOVE FROM itemname WHERE name = ?;");
+			prep.setString(1, item);
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1014,12 +1112,17 @@ public class InventoryDatabase {
 
 		try {
 			long rowID = -1;
-			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + oldName + "';");
+			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
+			prep.setString(1, oldName);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
-
-			statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", " + newName + ";");
+			
+			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
+			prep.setLong(1, rowID);
+			prep.setString(2, newName);
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1042,13 +1145,18 @@ public class InventoryDatabase {
 
 		try {
 			long rowID = -1;
-			ResultSet rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + oldName + "';");
+			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
+			prep.setString(1, oldName);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
 
 			for( String i : newName ) {
-				statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", " + i + ";");
+				prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ?, ?;");
+				prep.setLong(1, rowID);
+				prep.setString(2, i);
+				prep.executeUpdate();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1075,7 +1183,10 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE container SET name = '" + newName + "' WHERE id = " + getContainerID(oldName) + ";");
+			prep = connection.prepareStatement("UPDATE container SET name = ? WHERE id = ?;");
+			prep.setString(1, newName);
+			prep.setLong(2, getContainerID(oldName));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1097,7 +1208,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE inventory SET name = '" + newName + "', time = " + getTime() + " WHERE id = " + getInventoryID(oldName) + ";");
+			prep = connection.prepareStatement("UPDATE inventory SET name = ?, time = ? WHERE id = ?;");
+			prep.setString(1, newName);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getInventoryID(oldName));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1112,7 +1227,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep = connection.prepareStatement("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep.setLong(1, defaultContainer);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getid(item));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1127,7 +1246,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE container SET inventory = " + defaultInventory + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
+			prep = connection.prepareStatement("UPDATE container SET inventory = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, defaultInventory);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getContainerID(container));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1148,7 +1271,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE item SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
+			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, defaultTeam);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getid(item));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1169,7 +1296,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE container SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getContainerID(container) + ";");
+			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, defaultTeam);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getContainerID(container));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1190,7 +1321,11 @@ public class InventoryDatabase {
 		}
 
 		try {
-			statement.executeUpdate("UPDATE inventory SET team = " + defaultTeam + ", time = " + getTime() + " WHERE id = " + getInventoryID(inventory) + ";");
+			prep = connection.prepareStatement("UPDATE inventory SET team = ?, time = ? WHERE id = ?;");
+			prep.setLong(1, defaultTeam);
+			prep.setLong(2, getTime());
+			prep.setLong(3, getInventoryID(inventory));
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -1208,7 +1343,11 @@ public class InventoryDatabase {
 	 */
 	public void newInventory( String name, String team ) {
 		try {
-			statement.executeUpdate("INSERT INTO inventory ( name, team, time ) VALUES '" + name + "', '" + team + "', " + getTime() + ";");
+			prep = connection.prepareStatement("INSERT INTO inventory ( name, team, time ) VALUES ?, ?, ?;");
+			prep.setString(1, name);
+			prep.setLong(2, getTeamID(team));
+			prep.setLong(3, getTime());
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1222,7 +1361,12 @@ public class InventoryDatabase {
 	 */
 	public void newContainer( String name, String inventory, String team ) {
 		try {
-			statement.executeUpdate("INSERT INTO container ( name, inventory, team, time ) VALUES '" + name + "', '" + inventory + "', " + team + "', " + getTime() + ";");
+			prep = connection.prepareStatement("INSERT INTO container ( name, inventory, team, time ) VALUES ?, ?, ?, ?;");
+			prep.setString(1, name);
+			prep.setLong(2, getInventoryID(inventory));
+			prep.setLong(3, getTeamID(team));
+			prep.setLong(4, getTime());
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1259,12 +1403,26 @@ public class InventoryDatabase {
 		try {
 			long rowID = -1;
 			long time = getTime();
-			statement.executeUpdate("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
-			ResultSet rs = statement.executeQuery("SELECT id FROM item WHERE container = " + container + ", team = " + team + "', time = " + time + ";" );
+			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time ) VALUES ?, ?, ?, ?;");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getContainerID(originContainer));
+			prep.setLong(3, getTeamID(team));
+			prep.setLong(4, time);
+			prep.executeUpdate();
+			
+			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?, team = ?, time = ?;");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getTeamID(team));
+			prep.setLong(3, time);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
-			statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", '" + name + "';");
+			
+			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ?, ?;");
+			prep.setLong(1, rowID);
+			prep.setString(2, name);
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1283,15 +1441,27 @@ public class InventoryDatabase {
 			ResultSet rs;
 			long time = getTime();
 
-			statement.executeUpdate("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
+			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time ) VALUES " + getContainerID(container) + ", " + getContainerID(originContainer) + ", " + team + "', " + time + ";");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getContainerID(originContainer));
+			prep.setLong(3, getTeamID(team));
+			prep.executeUpdate();
 
-			rs = statement.executeQuery("SELECT id FROM item WHERE container = " + getContainerID(container) + ", origincontainer = " + getContainerID(originContainer) + ", team = " + team + "', time = " + time + ";" );
+			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?, origincontainer = ?, team = ?, time = " + time + ";");
+			prep.setLong(1, getContainerID(container));
+			prep.setLong(2, getContainerID(originContainer));
+			prep.setLong(3, getTeamID(team));
+			prep.setLong(4, time);
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
 
 			for( String name : names ) {
-				statement.executeUpdate("INSERT INTO itemname ( id, name ) VALUES " + rowID + ", '" + name + "';");
+				prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
+				prep.setLong(1, rowID);
+				prep.setString(2, name);
+				prep.executeUpdate();
 			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
@@ -1305,7 +1475,10 @@ public class InventoryDatabase {
 	 */
 	public void newTeam( String name, long id ) {
 		try {
-			statement.executeUpdate("INSERT INTO team ( id, name ) VALUES " + id + ", '" + name + "';");
+			prep = connection.prepareStatement("INSERT INTO team ( id, name ) VALUES ( ?, ? );");
+			prep.setLong(1, id);
+			prep.setString(2, name);
+			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -1321,7 +1494,9 @@ public class InventoryDatabase {
 		long id = -1;
 
 		try {
-			ResultSet rs = statement.executeQuery("SELECT id FROM inventory WHERE name = '" + inventory + "';");
+			prep = connection.prepareStatement("SELECT id FROM inventory WHERE name = ?;");
+			prep.setString(1, inventory);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				id = rs.getLong("id");
 			}
@@ -1336,7 +1511,9 @@ public class InventoryDatabase {
 		long id = -1;
 
 		try {
-			ResultSet rs = statement.executeQuery("SELECT id FROM container WHERE name = '" + container + "';");
+			prep = connection.prepareStatement("SELECT id FROM container WHERE name = ?;");
+			prep.setString(1, container);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				id = rs.getLong("id");
 			}
@@ -1355,7 +1532,9 @@ public class InventoryDatabase {
 		long id = -1;
 
 		try {
-			ResultSet rs = statement.executeQuery("SELECT id FROM team WHERE name = '" + team + "';");
+			prep = connection.prepareStatement("SELECT id FROM team WHERE name = ?;");
+			prep.setString(1, team);
+			ResultSet rs = prep.executeQuery();
 			if( rs.next() ) {
 				id = rs.getLong("id");
 			}
@@ -1369,7 +1548,9 @@ public class InventoryDatabase {
 	private long getItemNameID( String item ) {
 		ResultSet rs;
 		try {
-			rs = statement.executeQuery("SELECT id FROM itemname WHERE name = '" + item + "';");
+			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
+			prep.setString(1, item);
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				return rs.getLong("id");
 			}

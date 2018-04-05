@@ -9,6 +9,7 @@ import pairs.PairComparator;
 import processors.Brain;
 import utilities.EntryNotExistException;
 import utilities.LevenshteinDistanceCalculator;
+import utilities.LocationsExceedItemsException;
 import utilities.NameExistsException;
 
 @Deprecated
@@ -31,8 +32,10 @@ public class Container {
 	public void addOrigin(Item item) {
 		if( Brain.data.itemExists( item.name ) ) {
 			try {
-				Brain.data.setItemOriginContainer( item.name, this.name );
+				Brain.data.addItemOriginContainer( item.name, this.name );
 			} catch (EntryNotExistException e) {
+				e.printStackTrace();
+			} catch (LocationsExceedItemsException e) {
 				e.printStackTrace();
 			}
 		} else {
@@ -56,8 +59,10 @@ public class Container {
 	public void add(Item item) {
 		if( Brain.data.itemExists( item.name ) ) {
 			try {
-				Brain.data.setItemContainer( item.name, this.name );
+				Brain.data.addItemContainer( item.name, this.name );
 			} catch (EntryNotExistException e) {
+				e.printStackTrace();
+			} catch (LocationsExceedItemsException e) {
 				e.printStackTrace();
 			}
 		} else {

@@ -758,80 +758,6 @@ public class InventoryDatabase {
 		return location;
 	}
 
-	/* Get last edit time */
-
-	/**
-	 * Retrieves the most recent time that the given inventory was altered
-	 * @param inventory The inventory name to fetch the time of
-	 * @return The last modified time of the given inventory
-	 */
-	public long getInventoryTime( String inventory ) {
-		long location = -1;
-		ResultSet rs;
-		PreparedStatement prep;
-
-		try {
-			prep = connection.prepareStatement("SELECT time FROM inventory WHERE id = ?;");
-			prep.setLong(1, getInventoryID( inventory ));
-			rs = prep.executeQuery();
-			if( rs.next() ) {
-				location = rs.getLong("time");
-			}
-		} catch( SQLException e ) {
-			e.printStackTrace();
-		}
-
-		return location;
-	}
-
-	/**
-	 * Retrieves the most recent time that the given container was altered
-	 * @param container The container name to fetch the time of
-	 * @return The last modified time of the given container
-	 */
-	public long getContainerTime( String container ) {
-		long location = -1;
-		ResultSet rs;
-		PreparedStatement prep;
-
-		try {
-			prep = connection.prepareStatement("SELECT time FROM container WHERE id = ?;");
-			prep.setLong(1, getContainerID( container ));
-			rs = prep.executeQuery();
-			if( rs.next() ) {
-				location = rs.getLong("time");
-			}
-		} catch( SQLException e ) {
-			e.printStackTrace();
-		}
-
-		return location;
-	}
-
-	/**
-	 * Retrieves the most recent time that the given item was altered
-	 * @param item The item name to fetch the time of
-	 * @return The last modified time of the given item
-	 */
-	public long getItemTime( String item ) {
-		long location = -1;
-		ResultSet rs;
-		PreparedStatement prep;
-
-		try {
-			prep = connection.prepareStatement("SELECT time FROM item WHERE id = ?;");
-			prep.setLong(1, getid( item ));
-			rs = prep.executeQuery();
-			if( rs.next() ) {
-				location = rs.getLong("time");
-			}
-		} catch( SQLException e ) {
-			e.printStackTrace();
-		}
-
-		return location;
-	}
-
 	/* SET DATABASE VALUES */
 
 	/**
@@ -853,10 +779,9 @@ public class InventoryDatabase {
 		PreparedStatement prep;
 
 		try {
-			prep = connection.prepareStatement("UPDATE container SET inventory = ?, time = ? WHERE id = ?;");
+			prep = connection.prepareStatement("UPDATE container SET inventory = ? WHERE id = ?;");
 			prep.setLong(1, getInventoryID(inventory));
-			prep.setLong(2, getTime());
-			prep.setLong(3, getContainerID(container));
+			prep.setLong(2, getContainerID(container));
 			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1013,10 +938,9 @@ public class InventoryDatabase {
 		PreparedStatement prep;
 
 		try {
-			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep = connection.prepareStatement("UPDATE item SET team = ? WHERE id = ?;");
 			prep.setLong(1, getTeamID(team));
-			prep.setLong(2, getTime());
-			prep.setLong(3, getid(item));
+			prep.setLong(2, getid(item));
 			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1043,10 +967,9 @@ public class InventoryDatabase {
 		PreparedStatement prep;
 
 		try {
-			prep = connection.prepareStatement("UPDATE container SET team = ?, time = ? WHERE id = ?;");
+			prep = connection.prepareStatement("UPDATE container SET team = ? WHERE id = ?;");
 			prep.setLong(1, getTeamID(team));
-			prep.setLong(2, getTime());
-			prep.setLong(3, getContainerID(container));
+			prep.setLong(2, getContainerID(container));
 			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1073,10 +996,9 @@ public class InventoryDatabase {
 		PreparedStatement prep;
 
 		try {
-			prep = connection.prepareStatement("UPDATE item SET team = ?, time = ? WHERE id = ?;");
+			prep = connection.prepareStatement("UPDATE item SET team = ? WHERE id = ?;");
 			prep.setLong(1, getTeamID(team));
-			prep.setLong(2, getTime());
-			prep.setLong(3, getInventoryID(inventory));
+			prep.setLong(2, getInventoryID(inventory));
 			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();

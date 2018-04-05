@@ -26,34 +26,6 @@ public class InventoryDatabase {
 	private long defaultInventory;
 	private long defaultContainer;
 
-	/*
-	 * TABLES:
-	 * ItemNames:
-	 *   id <-- Same as id of item it represents
-	 *   name <-- the string based name
-	 * Item
-	 *   Time added / modified
-	 *   ID
-	 *   Container
-	 *   Team // Who owns the thing
-	 *   Location
-	 * Container
-	 *   Time added / modified
-	 *   Name
-	 *   ID
-	 *   Inventory
-	 *   Team // Who owns the thing
-	 * Inventory
-	 *   Time added / modified
-	 *   Name
-	 *   ID
-	 *   Team // Who owns the thing
-	 * Team
-	 *   ID
-	 *   Name
-	 *   Time added / modified
-	 */
-
 	public InventoryDatabase() {
 		this( sdf.format( Calendar.getInstance().getTime() ) );
 	}
@@ -106,6 +78,11 @@ public class InventoryDatabase {
 			}
 
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='itemcontainer';");
+			if( rs.getFetchSize() == 0 ) {
+				return false;
+			}
+			
+			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='itemorigincontainer';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
@@ -202,13 +179,13 @@ public class InventoryDatabase {
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, "
 					+ "team integer NOT NULL DEFAULT -1, origincontainer integer, count integer NOT NULL DEFAULT 1, "
 					+ "time integer, "
-					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (team) REFERENCES team(id) );" );
+					+ "FOREIGN KEY (team) REFERENCES team(id) );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text UNIQUE NOT NULL, "
 					+ "time integer NOT NULL DEFAULT -1,"
 					+ "FOREIGN KEY (id) REFERENCES item(id) );" );
-			statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemcontainer ( id integer NOT NULL, container NOT NULL, time integer NOT NULL,"
+			statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemcontainer ( id integer NOT NULL, container NOT NULL, "
 					+ "FOREIGN KEY (id) REFERENCES item (id) )");
-			statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemorigincontainer ( id integer NOT NULL, container NOT NULL, time integer NOT NULL,"
+			statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemorigincontainer ( id integer NOT NULL, container NOT NULL, "
 					+ "FOREIGN KEY (id) REFERENCES item (id) )");
 
 			/* Add default values to tables */
@@ -706,17 +683,17 @@ public class InventoryDatabase {
 	 * @param item The name of the item to get the container of
 	 * @return The current container of the given item
 	 */
-	public String[] getItemLocation( String item ) {
+	public String[] getItemLocation( String item ) { // TODO
 		List<String> location = new ArrayList<>();
 		ResultSet rs;
 		PreparedStatement prep;
 
 		try {
-			prep = connection.prepareStatement("SELECT name FROM itemcontainer WHERE id = ?;");
+			prep = connection.prepareStatement("SELECT container FROM itemcontainer WHERE id = ?;");
 			prep.setLong(1, getItemNameID(item));
 			rs = prep.executeQuery();
-			if( rs.next() ) {
-				location.add( rs.getString("name") );
+			while( rs.next() ) {
+				location.add( rs.getString("container") );
 			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
@@ -731,31 +708,23 @@ public class InventoryDatabase {
 	 * @param item The name of the item to get the origin container of
 	 * @return The origin container of the given item
 	 */
-	public String getItemOriginLocation( String item ) {
-		String location = "";
+	public String[] getItemOriginLocation( String item ) {
+		List<String> location = new ArrayList<>();
 		ResultSet rs;
 		PreparedStatement prep;
 
 		try {
-			long locationID = -1;
-			prep = connection.prepareStatement("SELECT origincontainer FROM item WHERE id = ?;");
-			prep.setLong(1, getid( item ));
+			prep = connection.prepareStatement("SELECT container FROM itemorigincontainer WHERE id = ?;");
+			prep.setLong(1, getItemNameID(item));
 			rs = prep.executeQuery();
-			if( rs.next() ) {
-				locationID = rs.getLong("origincontainer");
-			}
-
-			prep = connection.prepareStatement("SELECT name FROM container WHERE id = ?;");
-			prep.setLong(1, locationID);
-			ResultSet rs2 = prep.executeQuery();
-			if( rs2.next() ) {
-				location = rs2.getString("name");
+			while( rs.next() ) {
+				location.add( rs.getString("container") );
 			}
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		}
 
-		return location;
+		return location.toArray( new String[ location.size() ] );
 	}
 
 	/* SET DATABASE VALUES */
@@ -789,6 +758,28 @@ public class InventoryDatabase {
 		}
 
 		return true;
+	}
+	
+	public boolean moveItem( String item, String originalContainer, String newContainer ) throws EntryNotExistException, ItemNoContainerException {
+		if( !itemExists( item ) ) {
+			throw new EntryNotExistException( item );
+		} else if( !containerExists( originalContainer ) ) {
+			throw new EntryNotExistException( originalContainer );
+		} else if( !containerExists( newContainer ) ) {
+			throw new EntryNotExistException(newContainer);
+		}
+		
+		if( !removeItemContainer( item, originalContainer ) ) {
+			return false;
+		}
+		try {
+			addItemContainer( item, newContainer );
+			return true;
+		} catch (LocationsExceedItemsException e) {
+			e.printStackTrace();
+			return false;
+			// This should never happen. Ever.
+		}
 	}
 
 	/**
@@ -864,7 +855,7 @@ public class InventoryDatabase {
 	 * @return Whether adding the item origin was successful or not
 	 * @throws EntryNotExistException Thrown when the given item or container is not found in the database
 	 */
-	public boolean addItemOriginContainer( String item, String container ) throws EntryNotExistException, LocationsExceedItemsException { // TODO
+	public boolean addItemOriginContainer( String item, String container ) throws EntryNotExistException, LocationsExceedItemsException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		} else if( !containerExists( container ) ) {
@@ -897,7 +888,7 @@ public class InventoryDatabase {
 	 * @return Whether adding the item origin was successful or not
 	 * @throws EntryNotExistException Thrown when the given item or container is not found in the database
 	 */
-	public boolean removeItemOriginContainer( String item, String container ) throws EntryNotExistException, ItemNoContainerException { // TODO
+	public boolean removeItemOriginContainer( String item, String container ) throws EntryNotExistException, ItemNoContainerException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		} else if( !containerExists( container ) ) {
@@ -1254,48 +1245,6 @@ public class InventoryDatabase {
 			prep.setString(1, newName);
 			prep.setLong(2, getTime());
 			prep.setLong(3, getInventoryID(oldName));
-			prep.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		return true;
-	}
-
-	public boolean setItemLocToDefault( String item ) throws EntryNotExistException { // TODO
-		if( !itemExists( item ) ) {
-			throw new EntryNotExistException( item );
-		}
-
-		PreparedStatement prep;
-
-		try {
-			prep = connection.prepareStatement("UPDATE item SET container = " + defaultContainer + ", time = " + getTime() + " WHERE id = " + getid(item) + ";");
-			prep.setLong(1, defaultContainer);
-			prep.setLong(2, getTime());
-			prep.setLong(3, getid(item));
-			prep.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		return true;
-	}
-
-	public boolean setContainerLocToDefault( String container ) throws EntryNotExistException {
-		if( !containerExists( container ) ) {
-			throw new EntryNotExistException( container );
-		}
-
-		PreparedStatement prep;
-
-		try {
-			prep = connection.prepareStatement("UPDATE container SET inventory = ?, time = ? WHERE id = ?;");
-			prep.setLong(1, defaultInventory);
-			prep.setLong(2, getTime());
-			prep.setLong(3, getContainerID(container));
 			prep.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -1783,7 +1732,7 @@ public class InventoryDatabase {
 		return -1;
 	}
 
-	private boolean itemLocationsEqualTotal( String item ) { // TODO
+	private boolean itemLocationsEqualTotal( String item ) {
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		int loc = 0;
@@ -1798,19 +1747,11 @@ public class InventoryDatabase {
 
 			rs = null;
 
-			prep = connection.prepareStatement("SELECT container FROM item WHERE id = ?");
+			prep = connection.prepareStatement("SELECT COUNT(*) AS rowcount FROM itemcontainer WHERE id = ?");
 			prep.setLong(1, getItemNameID(item));
 			rs = prep.executeQuery();
-
 			if( rs.next() ) {
-				long id = rs.getLong("container");
-				prep = connection.prepareStatement("SELECT COUNT(*) AS rowcount FROM itemcontainer WHERE id = ?;");
-				prep.setLong(1, id);
-				rs = null;
-				rs = prep.executeQuery();
-				if( rs.next() ) {
-					loc = rs.getInt("rowcount");
-				}
+				loc = rs.getInt("rowcount");
 			}
 		} catch( SQLException e ) {
 			e.printStackTrace();

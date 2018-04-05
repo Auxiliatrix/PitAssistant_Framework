@@ -7,7 +7,6 @@ import constants.Calibration;
 import modules.SearchModule;
 import modules.invokers.Invoker;
 import objects.Inventory;
-import pairs.ItemPair;
 import pairs.Pair;
 import utilities.InventoryDatabase;
 import utilities.InventoryLoader;
@@ -64,13 +63,11 @@ public class Brain {
 	}
 
 	private static void init() {
-		System.out.println("STARTING =========================================================================================");
 		// Load database
 		if( !data.isInitialized() ) {
 			System.out.println("Creating Database File...");
 			data.init();
 			System.out.println("Done.");
-
 		}
 		
 		loadStandardData();

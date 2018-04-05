@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import constants.Calibration;
-import pairs.ContainerPair;
-import pairs.ContainerPairComparator;
 import pairs.Pair;
 import pairs.PairComparator;
 import utilities.LevenshteinDistanceCalculator;

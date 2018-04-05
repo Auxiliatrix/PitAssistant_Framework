@@ -194,12 +194,12 @@ public class InventoryDatabase {
 					+ "team integer NOT NULL DEFAULT -1, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text UNIQUE NOT NULL, "
 					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL);" );
-			
+
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, "
 					+ "container integer NOT NULL, team integer NOT NULL DEFAULT -1, origincontainer integer, count integer NOT NULL DEFAULT 1, "
 					+ "time integer, "
 					+ "FOREIGN KEY (container) REFERENCES container(id), FOREIGN KEY (team) REFERENCES team(id) );" );
-			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text NOT NULL DEFAULT 'default', "
+			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS itemname ( id integer NOT NULL, name text UNIQUE NOT NULL, "
 					+ "time integer NOT NULL DEFAULT -1,"
 					+ "FOREIGN KEY (id) REFERENCES item(id) );" );
 
@@ -710,7 +710,7 @@ public class InventoryDatabase {
 			if( rs.next() ) {
 				locationID = rs.getLong("origincontainer");
 			}
-			
+
 			prep = connection.prepareStatement("SELECT name FROM container WHERE id = ?;");
 			prep.setLong(1, locationID);
 			ResultSet rs2 = prep.executeQuery();
@@ -743,7 +743,7 @@ public class InventoryDatabase {
 			if( rs.next() ) {
 				locationID = rs.getLong("origincontainer");
 			}
-			
+
 			prep = connection.prepareStatement("SELECT name FROM container WHERE id = ?;");
 			prep.setLong(1, locationID);
 			ResultSet rs2 = prep.executeQuery();
@@ -848,7 +848,7 @@ public class InventoryDatabase {
 		} else if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -880,7 +880,7 @@ public class InventoryDatabase {
 		} else if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -913,7 +913,7 @@ public class InventoryDatabase {
 		} else if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -943,7 +943,7 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -973,7 +973,7 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1003,7 +1003,7 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1033,7 +1033,7 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1063,7 +1063,7 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1093,7 +1093,7 @@ public class InventoryDatabase {
 		} else if( !teamExists( team ) ) {
 			throw new EntryNotExistException( team );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1121,7 +1121,7 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1143,22 +1143,30 @@ public class InventoryDatabase {
 	 * @return Whether adding the name was successful or not
 	 * @throws EntryNotExistException Thrown when the given item is not found in the database
 	 */
-	public boolean addItemName( String oldName, String newName ) throws EntryNotExistException {
+	public boolean addItemName( String oldName, String newName ) throws EntryNotExistException, NameExistsException {
 		if( !itemExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
+
+			prep = connection.prepareStatement("SELECT COUNT(*) FROM itemname WHERE name = ?");
+			prep.setString(1, newName);
+			ResultSet rs = prep.executeQuery();
+			if( rs.next() ) {
+				throw new NameExistsException(newName);
+			}
+
 			long rowID = -1;
 			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
 			prep.setString(1, oldName);
-			ResultSet rs = prep.executeQuery();
+			rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
-			
+
 			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
 			prep.setLong(1, rowID);
 			prep.setString(2, newName);
@@ -1184,7 +1192,7 @@ public class InventoryDatabase {
 		}
 
 		PreparedStatement prep;
-		
+
 		try {
 			long rowID = -1;
 			prep = connection.prepareStatement("SELECT id FROM itemname WHERE name = ?;");
@@ -1223,7 +1231,7 @@ public class InventoryDatabase {
 		if( !containerExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1250,7 +1258,7 @@ public class InventoryDatabase {
 		if( !inventoryExists( oldName ) ) {
 			throw new EntryNotExistException( oldName );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1271,7 +1279,7 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1292,7 +1300,7 @@ public class InventoryDatabase {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1319,7 +1327,7 @@ public class InventoryDatabase {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1346,7 +1354,7 @@ public class InventoryDatabase {
 		if( !containerExists( container ) ) {
 			throw new EntryNotExistException( container );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1373,7 +1381,7 @@ public class InventoryDatabase {
 		if( !inventoryExists( inventory ) ) {
 			throw new EntryNotExistException( inventory );
 		}
-		
+
 		PreparedStatement prep;
 
 		try {
@@ -1400,7 +1408,7 @@ public class InventoryDatabase {
 	public void newInventory( String name, String team ) {
 		newInventory(name, getTeamID(team));
 	}
-	
+
 	/**
 	 * Creates a new inventory entry, for holding containers
 	 * @param name The name of the inventory
@@ -1408,7 +1416,7 @@ public class InventoryDatabase {
 	 */
 	public void newInventory( String name, long team ) {
 		PreparedStatement prep;
-		
+
 		try {
 			prep = connection.prepareStatement("INSERT INTO inventory ( name, team, time ) VALUES ( ?, ?, ? );");
 			prep.setString(1, name);
@@ -1429,7 +1437,7 @@ public class InventoryDatabase {
 	public void newContainer( String name, String inventory, String team ) {
 		newContainer( name, inventory, getTeamID(team) );
 	}
-	
+
 	/**
 	 * Creates a new container entry, for holding items
 	 * @param name The name of the container
@@ -1438,7 +1446,7 @@ public class InventoryDatabase {
 	 */
 	public void newContainer( String name, String inventory, long team ) {
 		PreparedStatement prep;
-		
+
 		System.out.println(name + " : " + inventory + " : " + team);
 		try {
 			prep = connection.prepareStatement("INSERT INTO container ( name, inventory, team, time ) VALUES ( ?, ?, ?, ? );");
@@ -1458,18 +1466,20 @@ public class InventoryDatabase {
 	 * @param name The name of the item
 	 * @param container The container the item resides within, same as the origin container
 	 * @param team The name of the team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String name, String container, String team ) {
+	public void newItem( String name, String container, String team ) throws NameExistsException {
 		newItem( name, container, container, team );
 	}
-	
+
 	/**
 	 * Creates a new item entry, where the conainer and origin container values are the same
 	 * @param name The name of the item
 	 * @param container The container the item resides within, same as the origin container
 	 * @param team The id of the team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String name, String container, long team ) {
+	public void newItem( String name, String container, long team ) throws NameExistsException {
 		newItem( name, container, container, team );
 	}
 
@@ -1479,8 +1489,9 @@ public class InventoryDatabase {
 	 * @param names All of the possible names used to refrence the item
 	 * @param container The container the item resides within, same as the origin container
 	 * @param team The team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String[] names, String container, String team ) {
+	public void newItem( String[] names, String container, String team ) throws NameExistsException {
 		newItem( names, 1, container, container, getTeamID(team) );
 	}
 
@@ -1490,19 +1501,21 @@ public class InventoryDatabase {
 	 * @param container The current container the item resides within
 	 * @param originContainer The container the item belongs to
 	 * @param team The team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String name, String container, String originContainer, String team ) {
+	public void newItem( String name, String container, String originContainer, String team ) throws NameExistsException {
 		newItem( name, 1, container, originContainer, getTeamID(team) );
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param name The name of the item
 	 * @param container The current container the item resides within
 	 * @param originContainer The container the item belongs to
 	 * @param team The id of the team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String name, String container, String originContainer, long team ) {
+	public void newItem( String name, String container, String originContainer, long team ) throws NameExistsException {
 		newItem( name, 1, container, originContainer, team );
 	}
 
@@ -1512,11 +1525,12 @@ public class InventoryDatabase {
 	 * @param container The current container the item resides within
 	 * @param originContainer The container the item belongs to
 	 * @param team The team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String[] names, String container, String originContainer, String team ) {
+	public void newItem( String[] names, String container, String originContainer, String team ) throws NameExistsException {
 		newItem(names, 1, container, originContainer, team);
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param names All of the possible names used to refrence the item
@@ -1524,44 +1538,48 @@ public class InventoryDatabase {
 	 * @param container The current container the item resides within
 	 * @param originContainer The container the item belongs to
 	 * @param team The team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String[] names, long count, String container, String originContainer, String team ) {
+	public void newItem( String[] names, long count, String container, String originContainer, String team ) throws NameExistsException {
 		newItem( names, count, container, originContainer, getTeamID(team) );
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param names All of the possible names used to refrence the item
 	 * @param count A integer representing the number of duplicate objects in existance
 	 * @param container The current container the item resides within, and its proper location
 	 * @param team The team name that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String[] names, long count, String container, String team ) {
+	public void newItem( String[] names, long count, String container, String team ) throws NameExistsException {
 		newItem( names, count, container, container, getTeamID(team) );
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param names All of the possible names used to refrence the item
 	 * @param count A integer representing the number of duplicate objects in existance
 	 * @param container The current container the item resides within, and its proper location
 	 * @param team The team id that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String[] names, long count, String container, long team ) {
+	public void newItem( String[] names, long count, String container, long team ) throws NameExistsException {
 		newItem( names, count, container, container, team );
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param name The name of the item
 	 * @param count A integer representing the number of duplicate objects in existance
 	 * @param container The current container the item resides within, and its proper location
 	 * @param team The team id that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String name, long count, String container, long team ) {
+	public void newItem( String name, long count, String container, long team ) throws NameExistsException {
 		newItem( name, count, container, container, team );
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param names All of the possible names used to refrence the item
@@ -1569,14 +1587,24 @@ public class InventoryDatabase {
 	 * @param container The current container the item resides within
 	 * @param originContainer The container the item belongs to
 	 * @param team The team id that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String[] names, long count, String container, String originContainer, long team ) {
+	public void newItem( String[] names, long count, String container, String originContainer, long team ) throws NameExistsException {
 		PreparedStatement prep;
-		
+
 		try {
 			long rowID = -1;
 			ResultSet rs;
 			long time = getTime();
+
+			for( String name : names ) {
+				prep = connection.prepareStatement("SELECT COUNT(*) FROM itemname WHERE name = ?");
+				prep.setString(1, name);
+				rs = prep.executeQuery();
+				if( rs.next() ) {
+					throw new NameExistsException(name);
+				}
+			}
 
 			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time, count ) VALUES ( ?, ?, ?, ?, ? );");
 			prep.setLong(1, getContainerID(container));
@@ -1597,7 +1625,7 @@ public class InventoryDatabase {
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
-			
+
 			prep.close();
 
 			for( String name : names ) {
@@ -1611,7 +1639,7 @@ public class InventoryDatabase {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Creates a new item entry
 	 * @param name The name of the item
@@ -1619,15 +1647,23 @@ public class InventoryDatabase {
 	 * @param container The current container the item resides within
 	 * @param originContainer The container the item belongs to
 	 * @param team The id of the team that owns the item
+	 * @throws NameExistsException If the name already is present in the item database
 	 */
-	public void newItem( String name, long count, String container, String originContainer, long team ) {
+	public void newItem( String name, long count, String container, String originContainer, long team ) throws NameExistsException {
 		PreparedStatement prep;
-		
+
 		try {
 			ResultSet rs = null;
 			long rowID = -1;
 			long time = getTime();
 			
+			prep = connection.prepareStatement("SELECT COUNT(*) FROM itemname WHERE name = ?");
+			prep.setString(1, name);
+			rs = prep.executeQuery();
+			if( rs.next() ) {
+				throw new NameExistsException(name);
+			}
+
 			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time, count ) VALUES ( ?, ?, ?, ?, ? );");
 			prep.setLong(1, getContainerID(container));
 			prep.setLong(2, getContainerID(originContainer));
@@ -1636,7 +1672,7 @@ public class InventoryDatabase {
 			prep.setLong(5, count);
 			prep.executeUpdate();
 			prep.close();
-			
+
 			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ? AND origincontainer = ? AND team = ? AND time = ? AND count = ?;");
 			prep.setLong(1, getContainerID(container));
 			prep.setLong(2, getContainerID(originContainer));
@@ -1647,9 +1683,9 @@ public class InventoryDatabase {
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
-			
+
 			prep.close();
-			
+
 			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
 			prep.setLong(1, rowID);
 			prep.setString(2, name);
@@ -1667,7 +1703,7 @@ public class InventoryDatabase {
 	 */
 	public void newTeam( String name, long id ) {
 		PreparedStatement prep;
-		
+
 		try {
 			prep = connection.prepareStatement("INSERT INTO team ( id, name, time ) VALUES ( ?, ?, ? );");
 			prep.setLong(1, id);

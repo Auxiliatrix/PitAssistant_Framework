@@ -28,7 +28,11 @@ public class InventoryLoader {
 				if( !item.isEmpty() ) {
 					String quantityString = tokens[g+1];
 					int quantity = quantityString.isEmpty() ? 1 : Integer.parseInt(quantityString);
-					Brain.data.newItem(item, quantity, containers.get(g), Calibration.INITIAL_OBJECT_OWNER);
+					try {
+						Brain.data.newItem(item, quantity, containers.get(g), Calibration.INITIAL_OBJECT_OWNER);
+					} catch (NameExistsException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}

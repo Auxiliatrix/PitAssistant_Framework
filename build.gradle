@@ -5,9 +5,11 @@ apply plugin:'eclipse'
 mainClassName = "processors.Brain"
 
 run {
-        if (project.hasProperty("runArgs")) {
+    if (project.hasProperty("runArgs")) {
         args Eval.me(runArgs)
     }
+    
+    standardInput = System.in
 }
 
 repositories {

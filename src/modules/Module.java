@@ -25,7 +25,7 @@ public class Module {
 			}
 		}
 		for( String line : order ) {
-			ret += "* " + countMap.get(line) + "x " + line + "\n";
+			ret += "* [" + countMap.get(line) + "x] " + line + "\n";
 		}
 		return ret;
 	}

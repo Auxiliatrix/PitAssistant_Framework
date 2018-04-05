@@ -19,6 +19,7 @@ public class ListInvoker extends Invoker {
 	@Override
 	public String process(String input) {
 		String response = "";
+		ArrayList<String> lines = new ArrayList<String>();
 		if( input.isEmpty() ) {
 			response += "These are the containers we have: \n";
 			for( Container container : Brain.inventory.containers ) {
@@ -33,7 +34,7 @@ public class ListInvoker extends Invoker {
 				if( first.value == 0 ) {
 					response += "Here's what" + (first.container.originalTeam ? "'s in " : " we borrowed from ") + first.container.name + "\n";
 					for( Item i : first.container.items ) {
-						response += "* " + i.name + "\n";
+						lines.add("* " + i.name);
 					}
 				} else {
 					response += "We don't have a container called " + input + ". Did you mean:\n";
@@ -43,7 +44,7 @@ public class ListInvoker extends Invoker {
 				}
 			}
 		}
-		return response;
+		return response + consolidate(lines);
 	}
 
 }

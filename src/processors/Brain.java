@@ -5,7 +5,9 @@ import java.util.Scanner;
 
 import constants.Calibration;
 import modules.SearchModule;
+import modules.invokers.AliasInvoker;
 import modules.invokers.Invoker;
+import modules.invokers.ListInvoker;
 import objects.Inventory;
 import utilities.InventoryLoader;
 
@@ -36,7 +38,11 @@ public class Brain {
 				}
 			}
 			if( !handled ) {
-				response = searcher.process(input);
+				if( input.startsWith("!") ) {
+					response = "Command not recognized.";
+				} else {
+					response = searcher.process(input);
+				}
 			}
 			System.out.println(response);
 		}
@@ -48,6 +54,7 @@ public class Brain {
 	}
 	
 	public static void loadInvokers() {
-		// TODO: Add invokers
+		invokers.add(new ListInvoker());
+		invokers.add(new AliasInvoker());
 	}
 }

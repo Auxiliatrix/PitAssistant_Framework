@@ -15,7 +15,7 @@ public class Brain {
 
 	public static Scanner sc = new Scanner(System.in);
 	public static InventoryLoader loader = new InventoryLoader();
-	public static InventoryDatabase data = new InventoryDatabase( Calibration.DATABASE_NAME );
+	public static InventoryDatabase data = new InventoryDatabase( Calibration.Database.DATABASE_NAME );
 
 	public static ArrayList<Invoker> invokers = new ArrayList<Invoker>();
 
@@ -68,6 +68,9 @@ public class Brain {
 
 		System.out.println("Loading invokers...");
 		loadInvokers();
+		
+		System.out.println("Backing up file...");
+		data.backup();
 	}
 	
 	public static void loadInvokers() {

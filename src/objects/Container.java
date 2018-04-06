@@ -4,76 +4,131 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import constants.Calibration;
-import pairs.ItemPair;
-import pairs.ItemPairComparator;
+import pairs.Pair;
+import pairs.PairComparator;
+import processors.Brain;
+import utilities.EntryNotExistException;
 import utilities.LevenshteinDistanceCalculator;
+import utilities.LocationsExceedItemsException;
+import utilities.NameExistsException;
 
+@Deprecated
 public class Container {
-	
+
 	public String name;
-	public String originalTeam;
+
+	public boolean originalTeam; // boolean
 	public ArrayList<Item> items;
 	
 	public Container(String name) {
-		this(name, Calibration.TEAM);
+		this(name, false);
 	}
 	
-	public Container(String name, String originalTeam) {
+	public Container(String name, boolean originalTeam) {
 		this.name = name;
 		this.originalTeam = originalTeam;
-		items = new ArrayList<Item>();
 	}
-	
+
 	public void addOrigin(Item item) {
+		if( Brain.data.itemExists( item.name ) ) {
+			try {
+				Brain.data.addItemOriginContainer( item.name, this.name );
+			} catch (EntryNotExistException e) {
+				e.printStackTrace();
+			} catch (LocationsExceedItemsException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				Brain.data.newItem( item.name, this.name, this.name );
+			} catch (NameExistsException e1) {
+				e1.printStackTrace();
+			}
+			
+			try { // Add the other names too
+				Brain.data.addItemName( item.name, item.aliases );
+			} catch( EntryNotExistException e ) {
+				e.printStackTrace();
+			}
+		}
 		item.originalContainer = this.name;
 		item.originalTeam = this.originalTeam;
-		items.add(item);
+		add(item);
 	}
-	
+
 	public void add(Item item) {
+		if( Brain.data.itemExists( item.name ) ) {
+			try {
+				Brain.data.addItemContainer( item.name, this.name );
+			} catch (EntryNotExistException e) {
+				e.printStackTrace();
+			} catch (LocationsExceedItemsException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				Brain.data.newItem( item.name, this.name, this.name );
+			} catch (NameExistsException e1) {
+				e1.printStackTrace();
+			}
+			
+			try { // Add the other names too
+				Brain.data.addItemName( item.name, item.aliases );
+			} catch( EntryNotExistException e ) {
+				e.printStackTrace();
+			}
+		}
+
+		item.currentContainer = this.name;
 		items.add(item);
 	}
-	
-	public ArrayList<ItemPair> search(String query) {
-		ArrayList<ItemPair> matches;
-		ArrayList<ItemPair> exacts;
-		ArrayList<ItemPair> partials;
-		
+
+	public ArrayList<Pair> search(String query) {
+		ArrayList<Pair> matches;
+		ArrayList<Pair> exacts;
+		ArrayList<Pair> partials;
+
 		exacts = getExacts( query );
-		partials = getPartials(query);
+		partials = getPartials( query );
 		if( !exacts.isEmpty() ) {
 			matches = exacts;
 		} else if( !partials.isEmpty() ) {
 			matches = partials;
 		} else {
-			matches = new ArrayList<ItemPair>();
+			matches = new ArrayList<Pair>();
 		}
 		return matches;
 	}
-	
-	public ArrayList<ItemPair> getExacts(String query) {
-		ArrayList<ItemPair> exacts = new ArrayList<ItemPair>();
-		for( Item i : items ) {
-			if( i.name.equalsIgnoreCase(query) ) {
-				exacts.add(new ItemPair(i, 0));
+
+	public ArrayList<Pair> getExacts( String query ) {
+		ArrayList<Pair> exacts = new ArrayList<Pair>();
+		String[][] itemNames = Brain.data.getItems( name );
+		for( String[] i : itemNames ) {
+			for( String n : i ) {
+				if( n.equalsIgnoreCase(query) ) {
+					exacts.add( new Pair(n, 0) );
+				}
 			}
 		}
 		return exacts;
 	}
-	
-	public ArrayList<ItemPair> getPartials(String query) {
+
+	public ArrayList<Pair> getPartials( String query ) {
 		LevenshteinDistanceCalculator ldc = new LevenshteinDistanceCalculator();
-		ArrayList<ItemPair> partials = new ArrayList<ItemPair>();
-		for( Item i : items ) {
-			double distance = ldc.optimalComparison(query, i.aliases);
-			
+		ArrayList<Pair> partials = new ArrayList<Pair>();
+		String[][] itemNames = Brain.data.getItems( name );
+
+		for( String[] i : itemNames ) {
+			double distance = ldc.optimalComparison( query, i );
+
 			if( distance <= Calibration.LEVENSHTEIN_TOLERANCE ) {
-				partials.add(new ItemPair(i, distance));
+				partials.add( new Pair( i[0], distance ) ); // Use the first name. Could be better...
 			}
 		}
-		ItemPair[] pairs = partials.toArray(new ItemPair[partials.size()]);
-		Arrays.sort(pairs, new ItemPairComparator());
-		return new ArrayList<ItemPair>(Arrays.asList(pairs));
+
+		Pair[] pairs = partials.toArray( new Pair[ partials.size() ] );
+		Arrays.sort( pairs, new PairComparator() );
+		return new ArrayList<Pair>( Arrays.asList(pairs)) ;
 	}
-	
+
 }

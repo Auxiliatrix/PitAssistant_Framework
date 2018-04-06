@@ -2,7 +2,8 @@
 *.class
 
 # Save file
-#.save
+.save
+*.db
 
 # Log file
 *.log
@@ -29,3 +30,21 @@ hs_err_pid*
 .classpath
 .project
 .settings
+
+# Gradle files
+.gradle/
+.gradletasknamecache
+build/
+bin/
+gen/
+local.properties
+
+# Windows thumbnail db
+Thumbs.db
+
+# OSX files
+.DS_Store
+/bin1/
+
+# Lock files
+.~lock.*

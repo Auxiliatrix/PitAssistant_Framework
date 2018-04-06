@@ -18,7 +18,7 @@ public class InventoryLoader {
 			String token = containerDeclarations[f];
 			if( !token.isEmpty() && !token.equalsIgnoreCase("quantity")) {
 				containers.put(f, token);
-				Brain.data.newContainer(token, "inventory", Calibration.INITIAL_OBJECT_OWNER);
+				Brain.data.newContainer(token, "inventory", Calibration.USER_TEAM_NUMBER);
 			}
 		}
 		for( int f=1; f<tokenMatrix.length; f++ ) {
@@ -29,7 +29,7 @@ public class InventoryLoader {
 					String quantityString = tokens[g+1];
 					int quantity = quantityString.isEmpty() ? 1 : Integer.parseInt(quantityString);
 					try {
-						Brain.data.newItem(item, quantity, containers.get(g), Calibration.INITIAL_OBJECT_OWNER);
+						Brain.data.newItem(item, quantity, containers.get(g), Calibration.USER_TEAM_NUMBER);
 					} catch (NameExistsException e) {
 						e.printStackTrace();
 					}

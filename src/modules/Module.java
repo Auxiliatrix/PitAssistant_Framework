@@ -3,13 +3,8 @@ package modules;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import processors.Brain;
-import utilities.InventoryDatabase;
-
 public class Module {
-	
-	private InventoryDatabase data = Brain.data;
-	
+		
 	public Module() {}
 	
 	public String process(String input) {
@@ -30,7 +25,7 @@ public class Module {
 			}
 		}
 		for( String line : order ) {
-			ret += "* " + countMap.get(line) + "x " + line + "\n";
+			ret += "* [" + countMap.get(line) + "x] " + line + "\n";
 		}
 		return ret;
 	}

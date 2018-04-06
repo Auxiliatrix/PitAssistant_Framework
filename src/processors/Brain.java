@@ -5,9 +5,9 @@ import java.util.Scanner;
 
 import constants.Calibration;
 import modules.SearchModule;
+import modules.invokers.AliasInvoker;
 import modules.invokers.Invoker;
-import objects.Inventory;
-import pairs.Pair;
+import modules.invokers.ListInvoker;
 import utilities.InventoryDatabase;
 import utilities.InventoryLoader;
 
@@ -17,7 +17,6 @@ public class Brain {
 	public static InventoryLoader loader = new InventoryLoader();
 	public static InventoryDatabase data = new InventoryDatabase( Calibration.DATABASE_NAME );
 
-	public static Inventory inventory = new Inventory();
 	public static ArrayList<Invoker> invokers = new ArrayList<Invoker>();
 
 	public static SearchModule searcher = new SearchModule();
@@ -39,25 +38,12 @@ public class Brain {
 				}
 			}
 
-			if( handled ) {
-				System.out.println(response);
-			} else {
-				ArrayList<Pair> results = inventory.search(input);
-				if( results.isEmpty() ) {
-					System.out.println("No results found.");
-				} else if( results.get(0).value == 0 ) {
-					System.out.println("Here's what I found: ");
+			if( !handled ) {
+				if( input.startsWith("!") ) {
+					response = "Command not recognized.";
 				} else {
-					System.out.println("I couldn't find \"" + input + "\". Did you mean: " );
-				}
-				for( Pair p : results ) {
-					System.out.println("* " + p.name);
-				}
-
-				if( !handled ) {
 					response = searcher.process(input);
 				}
-				System.out.println(response);
 			}
 		}
 	}
@@ -76,13 +62,14 @@ public class Brain {
 
 		loadInvokers();
 	}
-
-	private static void loadInvokers() {
-		// TODO: Add invokers
+	
+	public static void loadInvokers() {
+		invokers.add(new ListInvoker());
+		invokers.add(new AliasInvoker());
 	}
 	
 	private static void loadStandardData() { // Later fetch from TBA
-		Brain.data.newInventory("inventory", Calibration.INITIAL_OBJECT_OWNER);
+		Brain.data.newInventory("inventory", Calibration.USER_TEAM_NUMBER);
 		Brain.data.newTeam("quixilver", 604); // All lower case, don't want any wierdness right now
 	}
 }

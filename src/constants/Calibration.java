@@ -8,9 +8,11 @@ public class Calibration {
 	public static final int DEFAULT_SQL_TIMEOUT = 30;
 	public static final String DATABASE_NAME = "jdbc:sqlite:inventory.db";
 	public static final String BACKUP_DATABASE = "jdbc:sqlite:backup.db";
-	public static final int INITIAL_OBJECT_OWNER = 604;
-	public static final int LEVENSHTEIN_TOLERANCE = 3;
-	public static final int LEVENSHTEIN_WORD_TOLERANCE = 2;
+	public static final int USER_TEAM_NUMBER = 604;
+	public static final String USER_TEAM_NAME = "quixilver";
+	public static final String INVENTORY = "default";
+	public static final int LEVENSHTEIN_TOLERANCE = 2;
+	public static final int LEVENSHTEIN_WORD_TOLERANCE = 1;
 	public static final HashMap<String, String> REPLACEMENTS;
 	static
     {

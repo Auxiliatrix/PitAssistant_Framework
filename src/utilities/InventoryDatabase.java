@@ -19,6 +19,8 @@ import constants.Calibration;
 public class InventoryDatabase {
 	private static SimpleDateFormat sdf = new SimpleDateFormat( Calibration.DATEFORMAT );
 
+	private String fileName;
+
 	private Connection connection = null;
 	private Statement statement = null;
 	private PreparedStatement prep = null;
@@ -32,11 +34,13 @@ public class InventoryDatabase {
 
 	public InventoryDatabase( String name ) {
 		try {
+			fileName = name;
+
 			Class.forName("org.sqlite.JDBC"); // Do i need this?
-			connection = DriverManager.getConnection( name );
+			connection = DriverManager.getConnection( Calibration.Database.MEMORY_DATABASE );
 
 			statement = connection.createStatement();
-			statement.setQueryTimeout( Calibration.DEFAULT_SQL_TIMEOUT );  // set timeout to 30 sec.
+			statement.setQueryTimeout( Calibration.Database.DEFAULT_SQL_TIMEOUT );  // set timeout to 30 sec.
 		} catch( SQLException e ) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -95,12 +99,14 @@ public class InventoryDatabase {
 	}
 
 	/**
-	 * Copies the loaded database to the location specified in the configuration
+	 * Copies the loaded database to the location specified in the configuration.
+	 * This must be run to save the in memory database to the disk.
+	 * This process can take some time.
 	 * @return boolean Whether the operation was successful, or threw an error
 	 */
 	public boolean backup() {
 		/* Useful if using a memory database */
-		return backup( Calibration.BACKUP_DATABASE );
+		return backup( Calibration.Database.DATABASE_NAME );
 	}
 
 	/**
@@ -123,7 +129,7 @@ public class InventoryDatabase {
 	 * @return boolean Wheter the operation was successful, or threw an error
 	 */
 	public boolean restore() {
-		return restore( Calibration.BACKUP_DATABASE );
+		return restore( Calibration.Database.DATABASE_NAME );
 	}
 
 	/**
@@ -429,7 +435,6 @@ public class InventoryDatabase {
 	public String[][] getItems( String container ) {
 		List<List<String>> result = new ArrayList<List<String>>();
 		PreparedStatement prep;
-
 		try {
 			ResultSet rs;
 			prep = connection.prepareStatement("SELECT id FROM itemcontainer WHERE container = ?;");
@@ -1620,13 +1625,13 @@ public class InventoryDatabase {
 			}
 
 			prep.close();
-			
+
 			prep = connection.prepareStatement("INSERT INTO itemcontainer ( id, container ) VALUES ( ?, ? );");
 			prep.setLong(1, rowID);
 			prep.setLong(2, getContainerID(container));
 			prep.execute();
 			prep.close();
-			
+
 			prep = connection.prepareStatement("INSERT INTO itemorigincontainer ( id, container ) VALUES ( ?, ? );");
 			prep.setLong(1, rowID);
 			prep.setLong(2, getContainerID(originContainer));
@@ -1854,6 +1859,10 @@ public class InventoryDatabase {
 			for( String s : l ) {
 				result[index][index2] = s;
 				index2++;
+			}
+
+			for( int in = index2; in < size; in++ ) {
+				result[index][in] = "";
 			}
 
 			index++;

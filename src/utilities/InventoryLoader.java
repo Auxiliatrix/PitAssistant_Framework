@@ -19,7 +19,7 @@ public class InventoryLoader {
 			
 			if( !token.isEmpty() && !token.equalsIgnoreCase("quantity")) {
 				containers.put(f, token);
-				Brain.data.newContainer(token, Calibration.INVENTORY, Calibration.USER_TEAM_NUMBER);
+				Brain.data.newContainer(token, Calibration.Database.INVENTORY, Calibration.USER_TEAM_NUMBER);
 			}
 		}
 		

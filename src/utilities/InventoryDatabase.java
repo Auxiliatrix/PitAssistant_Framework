@@ -81,7 +81,7 @@ public class InventoryDatabase {
 			if( rs.getFetchSize() == 0 ) {
 				return false;
 			}
-			
+
 			rs = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='itemorigincontainer';");
 			if( rs.getFetchSize() == 0 ) {
 				return false;
@@ -175,7 +175,8 @@ public class InventoryDatabase {
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS inventory ( id integer PRIMARY KEY NOT NULL, name text UNIQUE NOT NULL, "
 					+ "team integer NOT NULL DEFAULT -1, time integer NOT NULL );" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS container ( id integer PRIMARY KEY NOT NULL, name text UNIQUE NOT NULL, "
-					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL);" );
+					+ "inventory integer NOT NULL, team integer NOT NULL, time integer NOT NULL,"
+					+ "FOREIGN KEY (inventory) REFERENCES inventory (id));" );
 			statement.executeUpdate( "CREATE TABLE IF NOT EXISTS item ( id integer PRIMARY KEY NOT NULL, "
 					+ "team integer NOT NULL DEFAULT -1, origincontainer integer, count integer NOT NULL DEFAULT 1, "
 					+ "time integer, "
@@ -184,9 +185,9 @@ public class InventoryDatabase {
 					+ "time integer NOT NULL DEFAULT -1,"
 					+ "FOREIGN KEY (id) REFERENCES item(id) );" );
 			statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemcontainer ( id integer NOT NULL, container NOT NULL, "
-					+ "FOREIGN KEY (id) REFERENCES item (id) )");
+					+ "FOREIGN KEY (id) REFERENCES item (id), FOREIGN KEY (container) REFERENCES container (id) )");
 			statement.executeUpdate("CREATE TABLE IF NOT EXISTS itemorigincontainer ( id integer NOT NULL, container NOT NULL, "
-					+ "FOREIGN KEY (id) REFERENCES item (id) )");
+					+ "FOREIGN KEY (id) REFERENCES item (id), FOREIGN KEY (container) REFERENCES container (id) )");
 
 			/* Add default values to tables */
 			ResultSet rs;
@@ -431,7 +432,7 @@ public class InventoryDatabase {
 
 		try {
 			ResultSet rs;
-			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ?;");
+			prep = connection.prepareStatement("SELECT id FROM itemcontainer WHERE container = ?;");
 			prep.setLong(1, getContainerID(container));
 			rs = prep.executeQuery();
 
@@ -759,7 +760,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	public boolean moveItem( String item, String originalContainer, String newContainer ) throws EntryNotExistException, ItemNoContainerException {
 		if( !itemExists( item ) ) {
 			throw new EntryNotExistException( item );
@@ -768,7 +769,7 @@ public class InventoryDatabase {
 		} else if( !containerExists( newContainer ) ) {
 			throw new EntryNotExistException(newContainer);
 		}
-		
+
 		if( !removeItemContainer( item, originalContainer ) ) {
 			return false;
 		}
@@ -878,7 +879,7 @@ public class InventoryDatabase {
 
 		return true;
 	}
-	
+
 	/**
 	 * Adds to the given item's original container list the given container.
 	 * The original container should be condsidered one of the proper place for the item, when stored properly.
@@ -1384,7 +1385,6 @@ public class InventoryDatabase {
 	public void newContainer( String name, String inventory, long team ) {
 		PreparedStatement prep;
 
-		System.out.println(name + " : " + inventory + " : " + team);
 		try {
 			prep = connection.prepareStatement("INSERT INTO container ( name, inventory, team, time ) VALUES ( ?, ?, ?, ? );");
 			prep.setString(1, name);
@@ -1594,33 +1594,43 @@ public class InventoryDatabase {
 			long rowID = -1;
 			long time = getTime();
 
-			prep = connection.prepareStatement("SELECT COUNT(*) FROM itemname WHERE name = ?");
+			prep = connection.prepareStatement("SELECT COUNT(*) AS rowcount FROM itemname WHERE name = ?");
 			prep.setString(1, name);
 			rs = prep.executeQuery();
 			if( rs.next() ) {
-				throw new NameExistsException(name);
+				if( rs.getLong("rowcount") > 0 ) {
+					throw new NameExistsException(name);
+				}
 			}
 
-			prep = connection.prepareStatement("INSERT INTO item ( container, origincontainer, team, time, count ) VALUES ( ?, ?, ?, ?, ? );");
-			prep.setLong(1, getContainerID(container));
-			prep.setLong(2, getContainerID(originContainer));
-			prep.setLong(3, team);
-			prep.setLong(4, time);
-			prep.setLong(5, count);
+			prep = connection.prepareStatement("INSERT INTO item ( team, time, count ) VALUES ( ?, ?, ? );");
+			prep.setLong(1, team);
+			prep.setLong(2, time);
+			prep.setLong(3, count);
 			prep.executeUpdate();
 			prep.close();
 
-			prep = connection.prepareStatement("SELECT id FROM item WHERE container = ? AND origincontainer = ? AND team = ? AND time = ? AND count = ?;");
-			prep.setLong(1, getContainerID(container));
-			prep.setLong(2, getContainerID(originContainer));
-			prep.setLong(3, team);
-			prep.setLong(4, time);
-			prep.setLong(5, count);
+			prep = connection.prepareStatement("SELECT id FROM item WHERE team = ? AND time = ? AND count = ?;");
+			prep.setLong(1, team);
+			prep.setLong(2, time);
+			prep.setLong(3, count);
 			rs = prep.executeQuery();
 			if( rs.next() ) {
 				rowID = rs.getLong("id");
 			}
 
+			prep.close();
+			
+			prep = connection.prepareStatement("INSERT INTO itemcontainer ( id, container ) VALUES ( ?, ? );");
+			prep.setLong(1, rowID);
+			prep.setLong(2, getContainerID(container));
+			prep.execute();
+			prep.close();
+			
+			prep = connection.prepareStatement("INSERT INTO itemorigincontainer ( id, container ) VALUES ( ?, ? );");
+			prep.setLong(1, rowID);
+			prep.setLong(2, getContainerID(originContainer));
+			prep.execute();
 			prep.close();
 
 			prep = connection.prepareStatement("INSERT INTO itemname ( id, name ) VALUES ( ?, ? );");
@@ -1807,7 +1817,7 @@ public class InventoryDatabase {
 
 		return (count <= 1 ? true : false );
 	}
-	
+
 	private boolean containersOriginIsOne( String item ) {
 		PreparedStatement prep = null;
 		ResultSet rs = null;

@@ -16,14 +16,17 @@ public class Search {
 		LinkedList<Pair> matches = new LinkedList<Pair>();
 		boolean exact = false;
 		LinkedList<LinkedList<Pair>> results = new LinkedList<LinkedList<Pair>>();
+		
 		for( String container : containers ) {
 			LinkedList<Pair> subResults = searchContainer( container, query);
+			
 			if( !subResults.isEmpty() ) {
 				if( !exact ) {
 					if( subResults.get(0).value == 0 ) { // A perfect match
 						exact = true; // Only add perfect values
 						results.clear(); // Remove all the worse matches
 					}
+					
 					results.add(subResults);
 				} else {
 					if( subResults.get(0).value == 0 ) {
@@ -32,9 +35,11 @@ public class Search {
 				}
 			}
 		}
+		
 		for( LinkedList<Pair> result : results ) {
 			matches.addAll(result);
 		}
+		
 		if( exact ) {
 			return matches;
 		} else {

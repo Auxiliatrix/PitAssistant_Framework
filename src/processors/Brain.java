@@ -23,6 +23,7 @@ public class Brain {
 
 	public static void main(String[] args) {
 		init();
+		System.out.println("STATUS: READY\n");
 		while( true ) {
 			String input = sc.nextLine();
 			boolean handled = false;
@@ -45,6 +46,8 @@ public class Brain {
 					response = searcher.process(input);
 				}
 			}
+			
+			System.out.println(response);
 		}
 	}
 
@@ -53,13 +56,17 @@ public class Brain {
 		if( !data.isInitialized() ) {
 			System.out.println("Creating Database File...");
 			data.init();
-			System.out.println("Done.");
+		} else {
+			System.out.println("Database exists with required table names");
 		}
 		
+		System.out.println("Loading presets...");
 		loadStandardData();
 		
+		System.out.println("Loading inventory...");
 		loader.load(Calibration.FILE_NAME);
 
+		System.out.println("Loading invokers...");
 		loadInvokers();
 	}
 	
